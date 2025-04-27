@@ -12,28 +12,29 @@ import 'package:forui/src/foundation/rendering.dart';
 
 part 'scaffold.style.dart';
 
-/// A scaffold.
+/// A layout structure that contains a header, content, and footer.
 ///
-/// A scaffold is a layout structure that contains a header, content, and footer.
-/// It is highly recommended to use a scaffold when creating a page even if a header and footer are not required.
+/// A scaffold provides the basic visual structure for an application, containing
+/// elements like headers, content areas, and footers. It is highly recommended
+/// to use a scaffold when creating a page even if a header and footer are not required.
 ///
 /// See:
 /// * https://forui.dev/docs/layout/scaffold for working examples.
 /// * [FScaffoldStyle] for customizing a scaffold's appearance.
 class FScaffold extends StatelessWidget {
-  /// The content.
+  /// The main content area of the scaffold.
   final Widget child;
 
-  /// The header.
+  /// The optional header displayed at the top of the scaffold.
   final Widget? header;
 
-  /// The footer.
+  /// The optional footer displayed at the bottom of the scaffold.
   final Widget? footer;
 
   /// True if [FScaffoldStyle.childPadding] should be applied to the [child]. Defaults to `true`.
   final bool childPad;
 
-  /// If true the [child] and the scaffold's floating widgets should size themselves to avoid the onscreen keyboard
+  /// If true, the [child] and the scaffold's floating widgets should size themselves to avoid the onscreen keyboard
   /// whose height is defined by the ambient [MediaQuery]'s [MediaQueryData.viewInsets] `bottom` property.
   ///
   /// For example, if there is an onscreen keyboard displayed above the scaffold, the body can be resized to avoid
@@ -103,7 +104,7 @@ class FScaffold extends StatelessWidget {
   }
 }
 
-/// [FScaffold]'s style.
+/// The scaffold style.
 final class FScaffoldStyle with Diagnosticable, _$FScaffoldStyleFunctions {
   /// The background color.
   @override
@@ -130,11 +131,13 @@ final class FScaffoldStyle with Diagnosticable, _$FScaffoldStyleFunctions {
   });
 
   /// Creates a [FScaffoldStyle] that inherits its properties.
-  FScaffoldStyle.inherit({required FColorScheme color, required FStyle style})
+  FScaffoldStyle.inherit({required FColors colors, required FStyle style})
     : this(
-        backgroundColor: color.background,
+        backgroundColor: colors.background,
         childPadding: style.pagePadding.copyWith(top: 0, bottom: 0),
-        footerDecoration: BoxDecoration(border: Border(top: BorderSide(color: color.border, width: style.borderWidth))),
+        footerDecoration: BoxDecoration(
+          border: Border(top: BorderSide(color: colors.border, width: style.borderWidth)),
+        ),
       );
 }
 

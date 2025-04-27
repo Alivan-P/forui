@@ -38,70 +38,73 @@ final class FButtonStyles with Diagnosticable, _$FButtonStylesFunctions {
     required this.ghost,
   });
 
-  /// Creates a [FButtonStyle] that inherits its properties from the provided [color], [text], and
-  /// [style].
-  FButtonStyles.inherit({required FColorScheme color, required FTypography text, required FStyle style})
+  /// Creates a [FButtonStyle] that inherits its properties.
+  FButtonStyles.inherit({required FColors colors, required FTypography typography, required FStyle style})
     : this(
         primary: FButtonStyle.inherit(
-          color: color,
+          colors: colors,
           style: style,
-          text: text,
-          background: color.primary,
-          foreground: color.primaryForeground,
+          typography: typography,
+          color: colors.primary,
+          foregroundColor: colors.primaryForeground,
         ),
         secondary: FButtonStyle.inherit(
-          color: color,
+          colors: colors,
           style: style,
-          text: text,
-          background: color.secondary,
-          foreground: color.secondaryForeground,
+          typography: typography,
+          color: colors.secondary,
+          foregroundColor: colors.secondaryForeground,
         ),
         destructive: FButtonStyle.inherit(
-          color: color,
+          colors: colors,
           style: style,
-          text: text,
-          background: color.destructive,
-          foreground: color.destructiveForeground,
+          typography: typography,
+          color: colors.destructive,
+          foregroundColor: colors.destructiveForeground,
         ),
         outline: FButtonStyle(
-          enabledBoxDecoration: BoxDecoration(
-            border: Border.all(color: color.border),
-            borderRadius: style.borderRadius,
-          ),
-          enabledHoverBoxDecoration: BoxDecoration(
-            border: Border.all(color: color.border),
-            borderRadius: style.borderRadius,
-            color: color.secondary,
-          ),
-          disabledBoxDecoration: BoxDecoration(
-            border: Border.all(color: color.disable(color.border)),
-            borderRadius: style.borderRadius,
-          ),
+          decoration: FWidgetStateMap({
+            WidgetState.disabled: BoxDecoration(
+              border: Border.all(color: colors.disable(colors.border)),
+              borderRadius: style.borderRadius,
+            ),
+            WidgetState.hovered | WidgetState.pressed: BoxDecoration(
+              border: Border.all(color: colors.border),
+              borderRadius: style.borderRadius,
+              color: colors.secondary,
+            ),
+            WidgetState.any: BoxDecoration(border: Border.all(color: colors.border), borderRadius: style.borderRadius),
+          }),
           focusedOutlineStyle: style.focusedOutlineStyle,
           contentStyle: FButtonContentStyle.inherit(
-            text: text,
-            enabled: color.secondaryForeground,
-            disabled: color.disable(color.secondaryForeground),
+            typography: typography,
+            enabled: colors.secondaryForeground,
+            disabled: colors.disable(colors.secondaryForeground),
           ),
-          iconContentStyle: FButtonIconContentStyle(
-            enabledStyle: IconThemeData(color: color.secondaryForeground, size: 20),
-            disabledStyle: IconThemeData(color: color.disable(color.secondaryForeground), size: 20),
+          iconContentStyle: FButtonIconContentStyle.inherit(
+            enabled: colors.secondaryForeground,
+            disabled: colors.disable(colors.secondaryForeground),
           ),
           tappableStyle: style.tappableStyle,
         ),
         ghost: FButtonStyle(
-          enabledBoxDecoration: BoxDecoration(borderRadius: style.borderRadius),
-          enabledHoverBoxDecoration: BoxDecoration(borderRadius: style.borderRadius, color: color.secondary),
-          disabledBoxDecoration: BoxDecoration(borderRadius: style.borderRadius),
+          decoration: FWidgetStateMap({
+            WidgetState.disabled: BoxDecoration(borderRadius: style.borderRadius),
+            WidgetState.hovered | WidgetState.pressed: BoxDecoration(
+              borderRadius: style.borderRadius,
+              color: colors.secondary,
+            ),
+            WidgetState.any: BoxDecoration(borderRadius: style.borderRadius),
+          }),
           focusedOutlineStyle: style.focusedOutlineStyle,
           contentStyle: FButtonContentStyle.inherit(
-            text: text,
-            enabled: color.secondaryForeground,
-            disabled: color.disable(color.secondaryForeground),
+            typography: typography,
+            enabled: colors.secondaryForeground,
+            disabled: colors.disable(colors.secondaryForeground),
           ),
-          iconContentStyle: FButtonIconContentStyle(
-            enabledStyle: IconThemeData(color: color.secondaryForeground, size: 20),
-            disabledStyle: IconThemeData(color: color.disable(color.secondaryForeground), size: 20),
+          iconContentStyle: FButtonIconContentStyle.inherit(
+            enabled: colors.secondaryForeground,
+            disabled: colors.disable(colors.secondaryForeground),
           ),
           tappableStyle: style.tappableStyle,
         ),

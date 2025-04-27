@@ -7,6 +7,26 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:forui/src/foundation/tappable.dart';
 import '../test_scaffold.dart';
 
+// ignore: avoid_positional_boolean_parameters
+Set<WidgetState> set(bool enabled) => {if (!enabled) WidgetState.disabled};
+
+class _StubTappable extends AnimatedTappable {
+  static void _press() {}
+
+  // ignore: unused_element_parameter
+  const _StubTappable({super.onPress = _press, super.child = const Text('stub')});
+
+  @override
+  _StubTappableState createState() => _StubTappableState();
+}
+
+class _StubTappableState extends AnimatedTappableState {
+  @override
+  void onPointerUp() {
+    Future.delayed(const Duration(seconds: 1)).then((_) => super.onPointerUp());
+  }
+}
+
 void main() {
   late FocusNode focusNode;
 
@@ -16,28 +36,28 @@ void main() {
 
   group('FTappable', () {
     for (final enabled in [true, false]) {
-      testWidgets('focused - ${enabled ? 'enabled' : 'disabled'}', (tester) async {
+      testWidgets('focused - $enabled', (tester) async {
         await tester.pumpWidget(
           TestScaffold(
             child: FTappable(
               focusNode: focusNode,
-              builder: (_, value, _) => Text('$value'),
+              builder: (_, states, _) => Text('$states'),
               onPress: enabled ? () {} : null,
             ),
           ),
         );
-        expect(find.text((focused: false, hovered: false, pressed: false).toString()), findsOneWidget);
+        expect(find.text(set(enabled).toString()), findsOneWidget);
 
         focusNode.requestFocus();
         await tester.pumpAndSettle();
-        expect(find.text((focused: true, hovered: false, pressed: false).toString()), findsOneWidget);
+        expect(find.text({...set(enabled), WidgetState.focused}.toString()), findsOneWidget);
       });
 
-      testWidgets('hovered - ${enabled ? 'enabled' : 'disabled'}', (tester) async {
+      testWidgets('hovered - $enabled', (tester) async {
         await tester.pumpWidget(
-          TestScaffold(child: FTappable(builder: (_, value, _) => Text('$value'), onPress: enabled ? () {} : null)),
+          TestScaffold(child: FTappable(builder: (_, states, _) => Text('$states'), onPress: enabled ? () {} : null)),
         );
-        expect(find.text((focused: false, hovered: false, pressed: false).toString()), findsOneWidget);
+        expect(find.text(set(enabled).toString()), findsOneWidget);
 
         final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
         await gesture.addPointer(location: Offset.zero);
@@ -47,12 +67,12 @@ void main() {
         await gesture.moveTo(tester.getCenter(find.byType(AnimatedTappable)));
         await tester.pumpAndSettle();
 
-        expect(find.text((focused: false, hovered: enabled, pressed: false).toString()), findsOneWidget);
+        expect(find.text({...set(enabled), WidgetState.hovered}.toString()), findsOneWidget);
 
         await gesture.moveTo(Offset.zero);
         await tester.pumpAndSettle();
 
-        expect(find.text((focused: false, hovered: false, pressed: false).toString()), findsOneWidget);
+        expect(find.text(set(enabled).toString()), findsOneWidget);
       });
 
       testWidgets('press', (tester) async {
@@ -62,7 +82,7 @@ void main() {
         await tester.pumpWidget(
           TestScaffold(
             child: FTappable(
-              builder: (_, value, _) => Text('$value'),
+              builder: (_, states, _) => Text('$states'),
               onPress: enabled ? () => pressCount++ : null,
               onLongPress: enabled ? () => longPressCount++ : null,
             ),
@@ -82,43 +102,43 @@ void main() {
         await tester.pumpWidget(
           TestScaffold(
             child: FTappable(
-              builder: (_, value, _) => Text('$value'),
+              builder: (_, states, _) => Text('$states'),
               onPress: enabled ? () => pressCount++ : null,
               onLongPress: enabled ? () => longPressCount++ : null,
             ),
           ),
         );
-        expect(find.text((focused: false, hovered: false, pressed: false).toString()), findsOneWidget);
+        expect(find.text(set(enabled).toString()), findsOneWidget);
 
         await tester.longPress(find.byType(AnimatedTappable));
-        expect(find.text((focused: false, hovered: false, pressed: enabled).toString()), findsOneWidget);
+        expect(find.text({...set(enabled), WidgetState.pressed}.toString()), findsOneWidget);
 
         await tester.pumpAndSettle();
-        expect(find.text((focused: false, hovered: false, pressed: false).toString()), findsOneWidget);
+        expect(find.text(set(enabled).toString()), findsOneWidget);
 
         expect(pressCount, 0);
         expect(longPressCount, enabled ? 1 : 0);
       });
 
-      testWidgets('press and hold - ${enabled ? 'enabled' : 'disabled'}', (tester) async {
+      testWidgets('press and hold - $enabled', (tester) async {
         final key = GlobalKey<AnimatedTappableState>();
 
         await tester.pumpWidget(
           TestScaffold(
-            child: FTappable(key: key, builder: (_, value, _) => Text('$value'), onPress: enabled ? () {} : null),
+            child: FTappable(key: key, builder: (_, states, _) => Text('$states'), onPress: enabled ? () {} : null),
           ),
         );
-        expect(find.text((focused: false, hovered: false, pressed: false).toString()), findsOneWidget);
+        expect(find.text(set(enabled).toString()), findsOneWidget);
         expect(key.currentState!.animation.value, 1);
 
         final gesture = await tester.press(find.byType(AnimatedTappable));
         await tester.pumpAndSettle(const Duration(milliseconds: 200));
-        expect(find.text((focused: false, hovered: false, pressed: enabled).toString()), findsOneWidget);
+        expect(find.text({...set(enabled), WidgetState.pressed}.toString()), findsOneWidget);
         expect(key.currentState!.animation.value, enabled ? 0.97 : 1.0);
 
         await gesture.up();
         await tester.pumpAndSettle();
-        expect(find.text((focused: false, hovered: false, pressed: false).toString()), findsOneWidget);
+        expect(find.text(set(enabled).toString()), findsOneWidget);
         expect(key.currentState!.animation.value, 1);
       });
 
@@ -130,7 +150,7 @@ void main() {
           TestScaffold(
             child: FTappable(
               autofocus: true,
-              builder: (_, value, _) => Text('$value'),
+              builder: (_, states, _) => Text('$states'),
               onPress: enabled ? () => pressCount++ : null,
               onLongPress: enabled ? () => longPressCount++ : null,
             ),
@@ -145,6 +165,17 @@ void main() {
       });
     }
 
+    testWidgets('simulated race condition between animation and unmounting of widget', (tester) async {
+      await tester.pumpWidget(TestScaffold(child: const _StubTappable()));
+
+      await tester.tap(find.text('stub'));
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+
+      expect(tester.takeException(), null);
+    });
+
     testWidgets('resets hover and touch states when enabled state changes', (tester) async {
       late StateSetter setState;
       VoidCallback? onPress = () {};
@@ -154,13 +185,13 @@ void main() {
           child: StatefulBuilder(
             builder: (context, setter) {
               setState = setter;
-              return FTappable(builder: (_, value, _) => Text('$value'), onPress: onPress);
+              return FTappable(builder: (_, states, _) => Text('$states'), onPress: onPress);
             },
           ),
         ),
       );
 
-      expect(find.text((focused: false, hovered: false, pressed: false).toString()), findsOneWidget);
+      expect(find.text(set(true).toString()), findsOneWidget);
 
       final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
       await gesture.addPointer(location: Offset.zero);
@@ -168,40 +199,40 @@ void main() {
 
       await gesture.moveTo(tester.getCenter(find.byType(AnimatedTappable)));
       await tester.pumpAndSettle();
-      expect(find.text((focused: false, hovered: true, pressed: false).toString()), findsOneWidget);
+      expect(find.text({...set(true), WidgetState.hovered}.toString()), findsOneWidget);
 
       setState(() => onPress = null);
       await tester.pumpAndSettle();
-      expect(find.text((focused: false, hovered: false, pressed: false).toString()), findsOneWidget);
+      expect(find.text({WidgetState.hovered, ...set(false)}.toString()), findsOneWidget);
     });
   });
 
   group('FTappable.static', () {
     for (final enabled in [true, false]) {
-      testWidgets('focused - ${enabled ? 'enabled' : 'disabled'}', (tester) async {
+      testWidgets('focused - $enabled', (tester) async {
         await tester.pumpWidget(
           TestScaffold(
             child: FTappable.static(
               focusNode: focusNode,
-              builder: (_, value, _) => Text('$value'),
+              builder: (_, states, _) => Text('$states'),
               onPress: enabled ? () {} : null,
             ),
           ),
         );
-        expect(find.text((focused: false, hovered: false, pressed: false).toString()), findsOneWidget);
+        expect(find.text(set(enabled).toString()), findsOneWidget);
 
         focusNode.requestFocus();
         await tester.pumpAndSettle();
-        expect(find.text((focused: true, hovered: false, pressed: false).toString()), findsOneWidget);
+        expect(find.text({...set(enabled), WidgetState.focused}.toString()), findsOneWidget);
       });
 
-      testWidgets('hovered - ${enabled ? 'enabled' : 'disabled'}', (tester) async {
+      testWidgets('hovered - $enabled', (tester) async {
         await tester.pumpWidget(
           TestScaffold(
-            child: FTappable.static(builder: (_, value, _) => Text('$value'), onPress: enabled ? () {} : null),
+            child: FTappable.static(builder: (_, states, _) => Text('$states'), onPress: enabled ? () {} : null),
           ),
         );
-        expect(find.text((focused: false, hovered: false, pressed: false).toString()), findsOneWidget);
+        expect(find.text(set(enabled).toString()), findsOneWidget);
 
         final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
         await gesture.addPointer(location: Offset.zero);
@@ -211,12 +242,12 @@ void main() {
         await gesture.moveTo(tester.getCenter(find.byType(FTappable)));
         await tester.pumpAndSettle();
 
-        expect(find.text((focused: false, hovered: enabled, pressed: false).toString()), findsOneWidget);
+        expect(find.text({...set(enabled), WidgetState.hovered}.toString()), findsOneWidget);
 
         await gesture.moveTo(Offset.zero);
         await tester.pumpAndSettle();
 
-        expect(find.text((focused: false, hovered: false, pressed: false).toString()), findsOneWidget);
+        expect(find.text(set(enabled).toString()), findsOneWidget);
       });
 
       testWidgets('press', (tester) async {
@@ -246,39 +277,39 @@ void main() {
         await tester.pumpWidget(
           TestScaffold(
             child: FTappable.static(
-              builder: (_, value, _) => Text('$value'),
+              builder: (_, states, _) => Text('$states'),
               onPress: enabled ? () => pressCount++ : null,
               onLongPress: enabled ? () => longPressCount++ : null,
             ),
           ),
         );
-        expect(find.text((focused: false, hovered: false, pressed: false).toString()), findsOneWidget);
+        expect(find.text(set(enabled).toString()), findsOneWidget);
 
         await tester.longPress(find.byType(FTappable));
-        expect(find.text((focused: false, hovered: false, pressed: enabled).toString()), findsOneWidget);
+        expect(find.text({...set(enabled), WidgetState.pressed}.toString()), findsOneWidget);
 
         await tester.pumpAndSettle();
-        expect(find.text((focused: false, hovered: false, pressed: false).toString()), findsOneWidget);
+        expect(find.text(set(enabled).toString()), findsOneWidget);
 
         expect(pressCount, 0);
         expect(longPressCount, enabled ? 1 : 0);
       });
 
-      testWidgets('press and hold - ${enabled ? 'enabled' : 'disabled'}', (tester) async {
+      testWidgets('press and hold - $enabled', (tester) async {
         await tester.pumpWidget(
           TestScaffold(
-            child: FTappable.static(builder: (_, value, _) => Text('$value'), onPress: enabled ? () {} : null),
+            child: FTappable.static(builder: (_, states, _) => Text('$states'), onPress: enabled ? () {} : null),
           ),
         );
-        expect(find.text((focused: false, hovered: false, pressed: false).toString()), findsOneWidget);
+        expect(find.text(set(enabled).toString()), findsOneWidget);
 
         final gesture = await tester.press(find.byType(FTappable));
         await tester.pumpAndSettle(const Duration(milliseconds: 200));
-        expect(find.text((focused: false, hovered: false, pressed: enabled).toString()), findsOneWidget);
+        expect(find.text({...set(enabled), WidgetState.pressed}.toString()), findsOneWidget);
 
         await gesture.up();
         await tester.pumpAndSettle();
-        expect(find.text((focused: false, hovered: false, pressed: false).toString()), findsOneWidget);
+        expect(find.text(set(enabled).toString()), findsOneWidget);
       });
 
       testWidgets('shortcut', (tester) async {
@@ -319,7 +350,7 @@ void main() {
         ),
       );
 
-      expect(find.text((focused: false, hovered: false, pressed: false).toString()), findsOneWidget);
+      expect(find.text(set(true).toString()), findsOneWidget);
 
       final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
       await gesture.addPointer(location: Offset.zero);
@@ -327,11 +358,11 @@ void main() {
 
       await gesture.moveTo(tester.getCenter(find.byType(FTappable)));
       await tester.pumpAndSettle();
-      expect(find.text((focused: false, hovered: true, pressed: false).toString()), findsOneWidget);
+      expect(find.text({...set(true), WidgetState.hovered}.toString()), findsOneWidget);
 
       setState(() => onPress = null);
       await tester.pumpAndSettle();
-      expect(find.text((focused: false, hovered: false, pressed: false).toString()), findsOneWidget);
+      expect(find.text({WidgetState.hovered, ...set(false)}.toString()), findsOneWidget);
     });
   });
 }

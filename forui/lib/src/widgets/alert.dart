@@ -7,29 +7,29 @@ import 'package:forui/forui.dart';
 
 part 'alert.style.dart';
 
-/// An alert.
+/// A visual element displaying status information (info, warning, success, or error).
 ///
-/// Displays a callout for user attention.
+/// Use alerts to communicate statuses, provide feedback, or convey important contextual information.
 ///
 /// See:
-/// * https://forui.dev/docs/navigation/alert for working examples.
-/// * [FBaseAlertStyle] for customizing an alert's appearance.
+/// * https://forui.dev/docs/feedback/alert for working examples.
+/// * [FAlertStyle] for customizing an alert's appearance.
 class FAlert extends StatelessWidget {
-  /// The icon, wrapped in [IconThemeData]. Defaults to `FIcons.circleAlert`.
-  final Widget icon;
-
-  /// The title.
-  final Widget title;
-
-  /// The subtitle.
-  final Widget? subtitle;
-
   /// The style. Defaults to [FAlertStyle.primary].
   ///
-  /// Although typically one of the pre-defined styles in [FBaseAlertStyle], it can also be a [FAlertStyle].
+  /// Although typically one of the pre-defined styles in [FBaseAlertStyle], it can also be a [FAlertStyle]
   final FBaseAlertStyle style;
 
-  /// Creates a [FAlert] with a tile, subtitle, and icon.
+  /// The title of the alert.
+  final Widget title;
+
+  /// The subtitle of the alert.
+  final Widget? subtitle;
+
+  /// The icon displayed on the left side of the alert.
+  final Widget icon;
+
+  /// Creates a [FAlert] with a title, subtitle, and icon.
   ///
   /// The alert's layout is as follows:
   /// ```diagram
@@ -97,7 +97,7 @@ class FAlert extends StatelessWidget {
   }
 }
 
-/// [FAlertStyle]'s style.
+/// The alert styles.
 final class FAlertStyles with Diagnosticable, _$FAlertStylesFunctions {
   /// The primary alert style.
   @override
@@ -111,26 +111,26 @@ final class FAlertStyles with Diagnosticable, _$FAlertStylesFunctions {
   const FAlertStyles({required this.primary, required this.destructive});
 
   /// Creates a [FAlertStyles] that inherits its properties.
-  FAlertStyles.inherit({required FColorScheme color, required FTypography text, required FStyle style})
+  FAlertStyles.inherit({required FColors colors, required FTypography typography, required FStyle style})
     : this(
         primary: FAlertStyle(
-          iconStyle: IconThemeData(color: color.foreground, size: 20),
-          titleTextStyle: text.base.copyWith(fontWeight: FontWeight.w500, color: color.foreground, height: 1.2),
-          subtitleTextStyle: text.sm.copyWith(color: color.foreground),
+          iconStyle: IconThemeData(color: colors.foreground, size: 20),
+          titleTextStyle: typography.base.copyWith(fontWeight: FontWeight.w500, color: colors.foreground, height: 1.2),
+          subtitleTextStyle: typography.sm.copyWith(color: colors.foreground),
           decoration: BoxDecoration(
-            border: Border.all(color: color.border),
+            border: Border.all(color: colors.border),
             borderRadius: style.borderRadius,
-            color: color.background,
+            color: colors.background,
           ),
         ),
         destructive: FAlertStyle(
-          iconStyle: IconThemeData(color: color.destructive, size: 20),
-          titleTextStyle: text.base.copyWith(fontWeight: FontWeight.w500, color: color.destructive, height: 1.2),
-          subtitleTextStyle: text.sm.copyWith(color: color.destructive),
+          iconStyle: IconThemeData(color: colors.destructive, size: 20),
+          titleTextStyle: typography.base.copyWith(fontWeight: FontWeight.w500, color: colors.destructive, height: 1.2),
+          subtitleTextStyle: typography.sm.copyWith(color: colors.destructive),
           decoration: BoxDecoration(
-            border: Border.all(color: color.destructive),
+            border: Border.all(color: colors.destructive),
             borderRadius: style.borderRadius,
-            color: color.background,
+            color: colors.background,
           ),
         ),
       );
@@ -138,7 +138,7 @@ final class FAlertStyles with Diagnosticable, _$FAlertStylesFunctions {
 
 /// A [FAlert]'s style.
 ///
-/// A style can be either one of the pre-defined styles in [FButtonStyle] or a [FButtonStyle] itself.
+/// A style can be either one of the pre-defined styles in [FAlertStyle] or an [FAlertStyle] itself.
 sealed class FBaseAlertStyle {}
 
 @internal

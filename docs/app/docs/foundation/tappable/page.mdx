@@ -4,6 +4,7 @@ import LinkBadge from '@/components/ui/link-badge/link-badge.tsx';
 import LinkBadgeGroup from '@/components/ui/link-badge/link-badge-group.tsx';
 
 # Tappable
+
 An area that responds to touch.
 
 <LinkBadgeGroup>
@@ -11,7 +12,7 @@ An area that responds to touch.
 </LinkBadgeGroup>
 
 <Callout type="info">
-  This widget is typically used to create other high-level widgets, i.e. [button](../form/button). You should prefer
+  This widget is typically used to create other high-level widgets, e.g., [button](../form/button). You should prefer
   those high-level widgets unless you're creating a custom widget.
 </Callout>
 
@@ -22,17 +23,17 @@ An area that responds to touch.
   <Tabs.Tab>
     ```dart copy
     FTappable(
-      builder: (context, data, child) => Container(
-        decoration: BoxDecoration(
-          color: data.hovered ? context.theme.colorScheme.secondary : context.theme.colorScheme.background,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: context.theme.colorScheme.border,
-          )
-        ),
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12),
-        child: child!,
-      ),
+      builder:
+          (context, data, child) => Container(
+            decoration: BoxDecoration(
+              color:
+                  data.contains(WidgetState.hovered) ? context.theme.colors.secondary : context.theme.colors.background,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: context.theme.colors.border),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12),
+            child: child!,
+          ),
       child: const Text('Tappable'),
       onPress: () {},
     );
@@ -50,11 +51,9 @@ const FTappable(
   semanticsLabel: 'Label',
   semanticSelected: false,
   excludeSemantics: false,
-  this.autofocus: false,
+  autofocus: false,
   focusNode: FocusNode(),
   onFocusChange: (focused) {},
-  touchHoverEnterDuration: const Duration(milliseconds: 200),
-  touchHoverExitDuration: Duration.zero,
   behavior: HitTestBehavior.translucent,
   onPress: () {},
   onLongPress: () {},
@@ -65,19 +64,17 @@ const FTappable(
 
 ### `FTappable.static(...)`
 
-A varient of `FTappable` without any animation. This is similar to using `FTappableAnimations.none`.
+A variant of `FTappable` without any animation. This is similar to using `FTappableAnimations.none`.
 
 ```dart copy
-const FTappable.static(
+FTappable.static(
   style: FTappableStyle(),
   semanticsLabel: 'Label',
   semanticSelected: false,
   excludeSemantics: false,
-  this.autofocus: false,
+  autofocus: false,
   focusNode: FocusNode(),
   onFocusChange: (focused) {},
-  touchHoverEnterDuration: const Duration(milliseconds: 200),
-  touchHoverExitDuration: Duration.zero,
   behavior: HitTestBehavior.translucent,
   onPress: () {},
   onLongPress: () {},

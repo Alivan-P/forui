@@ -6,6 +6,29 @@ import 'package:forui/forui.dart';
 import '../../test_scaffold.dart';
 
 void main() {
+  testWidgets('set initial value', (tester) async {
+    final key = GlobalKey<FormState>();
+
+    Set<int>? initial;
+    await tester.pumpWidget(
+      TestScaffold(
+        child: Form(
+          key: key,
+          child: FSelectGroup<int>(
+            controller: autoDispose(FMultiValueNotifier(values: {1})),
+            children: [FRadio.grouped(label: const Text('1'), value: 1)],
+            onSaved: (value) => initial = value,
+          ),
+        ),
+      ),
+    );
+
+    key.currentState!.save();
+    await tester.pumpAndSettle(const Duration(seconds: 5));
+
+    expect(initial, {1});
+  });
+
   testWidgets('callbacks called', (tester) async {
     var changes = 0;
     var selections = 0;
@@ -20,16 +43,17 @@ void main() {
             selections++;
             selection = value;
           },
-          children: const [
-            FSelectGroupItem.radio(value: 1, label: Text('1')),
-            FSelectGroupItem.radio(value: 2, label: Text('2')),
-            FSelectGroupItem.radio(value: 3, label: Text('3')),
+          children: [
+            FRadio.grouped(value: 1, label: const Text('1')),
+            FRadio.grouped(value: 2, label: const Text('2')),
+            FRadio.grouped(value: 3, label: const Text('3')),
           ],
         ),
       ),
     );
 
     await tester.tap(find.text('2'));
+    await tester.pumpAndSettle(const Duration(seconds: 5));
 
     expect(changes, 1);
     expect(selections, 1);
@@ -52,12 +76,13 @@ void main() {
             firstSelections++;
             firsSelection = value;
           },
-          children: const [FSelectGroupItem.checkbox(value: 1, label: Text('1'))],
+          children: [FCheckbox.grouped(value: 1, label: const Text('1'))],
         ),
       ),
     );
 
     await tester.tap(find.text('1'));
+    await tester.pumpAndSettle(const Duration(seconds: 5));
 
     expect(firstChanges, 1);
     expect(firstSelections, 1);
@@ -77,12 +102,13 @@ void main() {
             secondSelections++;
             secondSelection = value;
           },
-          children: const [FSelectGroupItem.checkbox(value: 1, label: Text('1'))],
+          children: [FCheckbox.grouped(value: 1, label: const Text('1'))],
         ),
       ),
     );
 
     await tester.tap(find.text('1'));
+    await tester.pumpAndSettle(const Duration(seconds: 5));
 
     expect(firstChanges, 1);
     expect(firstSelections, 1);
@@ -101,7 +127,7 @@ void main() {
           controller: first,
           onChange: (_) {},
           onSelect: (_) {},
-          children: const [FSelectGroupItem.checkbox(value: 1, label: Text('1'))],
+          children: [FCheckbox.grouped(value: 1, label: const Text('1'))],
         ),
       ),
     );
@@ -116,7 +142,7 @@ void main() {
           controller: second,
           onChange: (_) {},
           onSelect: (_) {},
-          children: const [FSelectGroupItem.checkbox(value: 1, label: Text('1'))],
+          children: [FCheckbox.grouped(value: 1, label: const Text('1'))],
         ),
       ),
     );
@@ -135,7 +161,7 @@ void main() {
           controller: controller,
           onChange: (_) {},
           onSelect: (_) {},
-          children: const [FSelectGroupItem.checkbox(value: 1, label: Text('1'))],
+          children: [FCheckbox.grouped(value: 1, label: const Text('1'))],
         ),
       ),
     );

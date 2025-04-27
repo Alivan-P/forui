@@ -2,17 +2,19 @@
 We are experimenting with a new changelog format which groups changes by feature.
 
 ### Styles
-Several breaking changes have been made to styles to improve consistency and usability.
+We added a CLI to generate styles for Forui widgets. See forui.dev/docs/cli for more information. 
+
+We made several breaking changes to styles and widgets that rely on state styles to improve consistency and usability 
+(too many to list sanely). Generally, all styles have been updated to use `WidgetState`s, becoming more customizable and 
+concise.
 
 * Add `FBottomNavigationItemStyle.spacing`.
 * Add `FCardContentStyle.imageSpacing`.
 * Add `FCardContentStyle.subtitleSpacing`.
 * Add `FCheckboxStateStyle.size`.
 
-* **Breaking** Rename `FThemeData.colorScheme` to `FThemeData.color`.
-* **Breaking** Rename `FThemeData.typography` to `FThemeData.text`.
+* **Breaking** Rename `FThemeData.colorScheme` to `FThemeData.colors`.
 * **Breaking** Rename all `F<Style>.inherit(colorScheme: ...)` to `F<Style>.inherit(color: ...)`.
-* **Breaking** Rename all `F<Style>.inherit(typography: ...)` to `F<Style>.inherit(text: ...)`.
 
 * **Breaking** Rename `FAlertStyle` to `FBaseAlertStyle`.
 * **Breaking** Rename `FAlertCustomStyle` to `FAlertStyle`.
@@ -23,7 +25,8 @@ Several breaking changes have been made to styles to improve consistency and usa
 * **Breaking** Combine `FDialogStyle.minWidth` and `FDialogStyle.maxWidth` into `FDialog.constraints.`.
 * **Breaking** Combine `FDialogStyle.minWidth` and `FDialogStyle.maxWidth` to `FDialog.constraints.`.
 
-#### `FIcon`
+
+### `FIcon`
 `FIcon` has been removed in favor of Flutter's `Icon` class. `FIcon` was designed with only monochrome icons in mind
 and is not able to support multicolored icons. This coincides with replacement of `FAssets` with `FIcons` and svg icons 
 with font icons. In addition, all `iconColor` and `iconSize` style properties have been replaced with `IconThemeData`.
@@ -55,16 +58,15 @@ with font icons. In addition, all `iconColor` and `iconSize` style properties ha
 * **Breaking** Change `FBreadcrumbStyle.iconStyle` from `FIconStyle` to `IconThemeData`.
 * **Breaking** Replace `FCheckboxStateStyle` `iconColor` with `iconStyle`.
 
-### `FSelect`
+### `FSelect` (new)
 A select displays a list of options for the user to pick from. It is searchable and supports both async & sync loading
 of items.
 
 * Add `FSelect`.
 * Add `FSelectController`.
 
-
 ### `FPopover`
-The traversal edge behavior of `FPopover` and Forui widgets that depend on it have been fixed.
+The traversal-edge behavior of `FPopover` and Forui widgets that depend on it have been fixed.
 
 * Add `FPopover.traversalEdgeBehavior`.
 * Add `traversalEdgeBehavior` to `FBreadcrumbItem.collapsed`.
@@ -74,6 +76,17 @@ The traversal edge behavior of `FPopover` and Forui widgets that depend on it ha
 * **Breaking** Change `focusNode` from `FocusNode` to `FocusScopeNode` in `FBreadcrumbItem.collapsed`.
 * **Breaking** Change `focusNode` from `FocusNode` to `FocusScopeNode` in `FPopoverMenu`.
 * **Breaking** Change `focusNode` from `FocusNode` to `FocusScopeNode` in `FSelectMenuTile`.
+
+
+### `FHeader`
+
+Several minor tweaks have been made to `FHeader` to improve usability and consistency.
+
+* Change `FHeader(title: ...)` to be optional.
+* Change `FHeader.nested(title: ...)` to be optional.
+* **Breaking** Change `FHeader(actions: ...)` to `FHeader(suffixes: ...)`.
+* **Breaking** Change `FHeader(prefixActions: ...)` to `FHeader(prefixes: ...)`.
+* **Breaking** Change `FHeader(suffixActions: ...)` to `FHeader(suffixes: ...)`.
 
 
 ### `FProgress`
@@ -106,6 +119,15 @@ A new `onChange` and `onSelect` callback has been added to most Forui widgets.
 * **Breaking** Rename `FSelectMenuTile.menuTileBuilder` to `FSelectMenuTile.menuBuilder`.
 
 
+### `FPortal`
+`FPortal` has been reworked to fix a series of longstanding issues.
+
+* Add `FPortal.useViewPadding`.
+* Fix `FPortal` not positioning portals correctly when wrapped in a `RepaintBoundary`/`Padding`.
+* Fix `FPortal` not updating portals when child's offset/size changes.
+* Fix `FPortal` displaying portal when child is not rendered.
+
+
 ### `FTappable`
 `FTappable` has been updated to support animations by default. This applies to all Forui widgets that use `FTappable`.
 The `hovered` state has also been split into `hovered` and `pressed` states.
@@ -122,34 +144,22 @@ The `hovered` state has also been split into `hovered` and `pressed` states.
 * Add `FLineCalendarStyle.tappableStyle`.
 * Add `FPaginationStyle.tappableStyle`.
 * Add `FTileStyle.tappableStyle`.
+
+* Add `FTappable.statesController`.
+* Add `FTappableStyle.cursor`.
 * **Breaking** Rename `FTappable` to `FTappable.static`.
 * **Breaking** Rename `FTappable.animated` to `FTappable`.
 * **Breaking** Split `FTappableData.hovered` into `FTappableData.hovered` and `FTappableData.pressed`.
+* Fix `FTappable`'s animation sometimes being invoked after it is unmounted.
 
 
-### Others
-* Add `obscuringCharacter` for `FTextField`. Thanks @MrHeer!
-* Add `filled` and `fillColor` for `FTextField`. Thanks @MrHeer!
+### Semantics Labels
 
-* Add `FLerpBorderRadius`.
-
-* Change `FHeader(title: ...)` to be optional.
-* Change `FHeader.nested(title: ...)` to be optional.
-* **Breaking** Change `FHeader(actions: ...)` to `FHeader(suffixes: ...)`.
-* **Breaking** Change `FHeader(prefixActions: ...)` to `FHeader(prefixes: ...)`.
-* **Breaking** Change `FHeader(suffixActions: ...)` to `FHeader(suffixes: ...)`.
-
-* **Breaking** Change `FAccordion.items` to `FAccordion.children`.
-* **Breaking** Change `FBadge(label: ...)` to `FBadge(child: ...)`.
-* **Breaking** Change `FButton(label: ...)` to `FBadge(child: ...)`.
-* **Breaking** Change `FSelectGroup(items: ...)` to `FBadge(children: ...)`.
-* **Breaking** Change `FTabs(tabs: ...)` to `FTabs(children: ...)`.
-* **Breaking** Change `FTabEntry(content: ...)` to `FTabEntry(child: ...)`.
-* **Breaking** Change `FScaffold(content: ...)` to `FScaffold(child: ...)`.
+We previously used both `semanticsLabel` and `semanticLabel` interchangeably throughout the library. All `semanticLabel`s
+have been renamed to `semanticsLabel` for consistency.
 
 * **Breaking** Rename `semanticLabel` to `semanticsLabel` in `FAvatar.new`.
 * **Breaking** Rename `semanticLabel` to `semanticsLabel` in `FBreadcrumb.collapsed`.
-
 * **Breaking** Rename `FCheckbox.semanticLabel` to `FCheckbox.semanticsLabel`.
 * **Breaking** Rename `FDialog.semanticLabel` to `FDialog.semanticsLabel`.
 * **Breaking** Rename `FHeaderAction.semanticLabel` to `FHeaderAction.semanticsLabel`.
@@ -165,7 +175,32 @@ The `hovered` state has also been split into `hovered` and `pressed` states.
 * **Breaking** Rename `FTile.semanticLabel` to `FTile.semanticsLabel`.
 * **Breaking** Rename `FTileGroup.semanticLabel` to `FTileGroup.semanticsLabel`.
 
-* Fixed an issue where header spacing is incorrectly ordered.
+
+### Others
+* Add `FTextField.obscuringCharacter`. Thanks @MrHeer!
+* Add `FTextField.filled` and `FTextField.fillColor`. Thanks @MrHeer!
+* Add `FDateField.builder`.
+* Add `FTimeField.builder`.
+* Add `FLerpBorderRadius`.
+
+* **Breaking** Change `FAccordion.items` to `FAccordion.children`.
+* **Breaking** Change `FBadge(label: ...)` to `FBadge(child: ...)`.
+* **Breaking** Change `FButton(label: ...)` to `FBadge(child: ...)`.
+* **Breaking** Change `FSelectGroup(items: ...)` to `FBadge(children: ...)`.
+* **Breaking** Change `FTabs(tabs: ...)` to `FTabs(children: ...)`.
+* **Breaking** Change `FTabEntry(content: ...)` to `FTabEntry(child: ...)`.
+* **Breaking** Change `FScaffold(content: ...)` to `FScaffold(child: ...)`.
+
+* Replace `FSelectGroupItem` with `FCheckbox.grouped(...)` and `FRadio.grouped(...)`.
+
+* Fix `FDialog` not handling infinitely sized body correctly.
+* Fix `FHeader` spacing appearing in incorrect order.
+* Fix `FResizable` not guarding against precision errors in assertions.
+* Fix `FSelectGroup` not setting its `FormField`'s initial value.
+* Fix `FSelectTileGroup` not setting its `FormField`'s initial value.
+* Fix `FSlider` not setting its `FormField`'s initial value.
+* Fix `FTextField` not setting its `FormField`'s initial value.
+
 
 ## 0.10.0+1
 

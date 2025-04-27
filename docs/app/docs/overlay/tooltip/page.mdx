@@ -4,7 +4,8 @@ import LinkBadge from '@/components/ui/link-badge/link-badge.tsx';
 import LinkBadgeGroup from '@/components/ui/link-badge/link-badge-group.tsx';
 
 # Tooltip
-A tooltip displays information related to a widget when focused, hovered over, and/or long pressed.
+
+A tooltip displays information related to a widget when focused, hovered over, or long pressed.
 
 <LinkBadgeGroup>
     <LinkBadge label="API Reference" href="https://pub.dev/documentation/forui/latest/forui.widgets.tooltip/"/>
@@ -21,10 +22,10 @@ A tooltip displays information related to a widget when focused, hovered over, a
         child: FButton(
           style: FButtonStyle.outline,
           onPress: () {},
-          label: Text('Long press/Hover'),
+          child: Text('Long press/Hover'),
         ),
       ),
-    ),
+    );
     ```
   </Tabs.Tab>
 </Tabs>
@@ -66,7 +67,7 @@ You can change how the tooltip is aligned to the button.
         child: FButton(
           style: FButtonStyle.outline,
           onPress: () {},
-          label: Text('Long press/Hover'),
+          child: Text('Long press/Hover'),
         ),
       ),
     );
@@ -90,7 +91,7 @@ You can change how the tooltip is aligned to the button.
         child: FButton(
           style: FButtonStyle.outline,
           onPress: () {},
-          label: Text('Long press'),
+          child: Text('Long press'),
         ),
       ),
     );

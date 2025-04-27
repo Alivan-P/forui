@@ -97,11 +97,17 @@ extension FTimeFieldControllers on FTimeFieldController {
 /// * [FTimeFieldStyle] for customizing a time field's appearance.
 abstract class FTimeField extends StatefulWidget {
   /// The default prefix builder that shows a clock icon.
-  static Widget defaultIconBuilder(BuildContext _, (FTimeFieldStyle, FTextFieldStateStyle) styles, Widget? _) =>
-      Padding(
-        padding: const EdgeInsetsDirectional.only(start: 14.0, end: 8.0),
-        child: IconTheme(data: styles.$1.iconStyle, child: const Icon(FIcons.clock4)),
-      );
+  static Widget defaultIconBuilder(
+    BuildContext _,
+    (FTimeFieldStyle, FTextFieldStyle, Set<WidgetState>) styles,
+    Widget? _,
+  ) => Padding(
+    padding: const EdgeInsetsDirectional.only(start: 14.0, end: 8.0),
+    child: IconTheme(data: styles.$1.iconStyle, child: const Icon(FIcons.clock4)),
+  );
+
+  static Widget _fieldBuilder(BuildContext _, (FTimeFieldStyle, FTextFieldStyle, Set<WidgetState>) _, Widget? child) =>
+      child!;
 
   /// The controller.
   final FTimeFieldController? controller;
@@ -120,13 +126,18 @@ abstract class FTimeField extends StatefulWidget {
   /// {@macro forui.foundation.doc_templates.focusNode}
   final FocusNode? focusNode;
 
+  /// The builder used to decorate the time-field. It should use the given child.
+  ///
+  /// Defaults to returning the given child.
+  final ValueWidgetBuilder<(FTimeFieldStyle, FTextFieldStyle, Set<WidgetState>)> builder;
+
   /// Builds a widget at the start of the input field that can be pressed to toggle the popover. Defaults to
   /// [defaultIconBuilder].
-  final ValueWidgetBuilder<(FTimeFieldStyle, FTextFieldStateStyle)>? prefixBuilder;
+  final ValueWidgetBuilder<(FTimeFieldStyle, FTextFieldStyle, Set<WidgetState>)>? prefixBuilder;
 
   /// Builds a widget at the end of the input field that can be pressed to toggle the popover. Defaults to
   /// no suffix.
-  final ValueWidgetBuilder<(FTimeFieldStyle, FTextFieldStateStyle)>? suffixBuilder;
+  final ValueWidgetBuilder<(FTimeFieldStyle, FTextFieldStyle, Set<WidgetState>)>? suffixBuilder;
 
   /// The label.
   final Widget? label;
@@ -168,6 +179,7 @@ abstract class FTimeField extends StatefulWidget {
     this.hour24 = false,
     this.autofocus = false,
     this.focusNode,
+    this.builder = _fieldBuilder,
     this.prefixBuilder = defaultIconBuilder,
     this.suffixBuilder,
     this.label,
@@ -209,8 +221,9 @@ abstract class FTimeField extends StatefulWidget {
     bool hour24,
     bool autofocus,
     FocusNode? focusNode,
-    ValueWidgetBuilder<(FTimeFieldStyle, FTextFieldStateStyle)>? prefixBuilder,
-    ValueWidgetBuilder<(FTimeFieldStyle, FTextFieldStateStyle)>? suffixBuilder,
+    ValueWidgetBuilder<(FTimeFieldStyle, FTextFieldStyle, Set<WidgetState>)> builder,
+    ValueWidgetBuilder<(FTimeFieldStyle, FTextFieldStyle, Set<WidgetState>)>? prefixBuilder,
+    ValueWidgetBuilder<(FTimeFieldStyle, FTextFieldStyle, Set<WidgetState>)>? suffixBuilder,
     TextInputAction? textInputAction,
     TextAlign textAlign,
     TextAlignVertical? textAlignVertical,
@@ -289,8 +302,9 @@ abstract class FTimeField extends StatefulWidget {
     bool directionPadding,
     int hourInterval,
     int minuteInterval,
-    ValueWidgetBuilder<(FTimeFieldStyle, FTextFieldStateStyle)>? prefixBuilder,
-    ValueWidgetBuilder<(FTimeFieldStyle, FTextFieldStateStyle)>? suffixBuilder,
+    ValueWidgetBuilder<(FTimeFieldStyle, FTextFieldStyle, Set<WidgetState>)> builder,
+    ValueWidgetBuilder<(FTimeFieldStyle, FTextFieldStyle, Set<WidgetState>)>? prefixBuilder,
+    ValueWidgetBuilder<(FTimeFieldStyle, FTextFieldStyle, Set<WidgetState>)>? suffixBuilder,
     Widget? label,
     Widget? description,
     bool enabled,
@@ -310,6 +324,7 @@ abstract class FTimeField extends StatefulWidget {
       ..add(FlagProperty('hour24', value: hour24, ifTrue: 'hour24'))
       ..add(FlagProperty('autofocus', value: autofocus, ifTrue: 'autofocus'))
       ..add(DiagnosticsProperty('focusNode', focusNode))
+      ..add(ObjectFlagProperty.has('builder', builder))
       ..add(ObjectFlagProperty.has('prefixBuilder', prefixBuilder))
       ..add(ObjectFlagProperty.has('suffixBuilder', suffixBuilder))
       ..add(ObjectFlagProperty.has('errorBuilder', errorBuilder))

@@ -7,18 +7,19 @@ import 'package:forui/forui.dart';
 
 part 'divider.style.dart';
 
-/// A divider.
+/// A visual separator used to create division between content.
 ///
-/// Dividers visually separate content.
+/// Dividers are horizontal lines that group content in lists and separate content in layouts.
+/// They can be used to establish visual hierarchy and organize content into distinct sections.
 ///
 /// See:
 /// * https://forui.dev/docs/layout/divider for working examples.
 /// * [FDividerStyle] for customizing a divider's appearance.
 final class FDivider extends StatelessWidget {
-  /// The divider's style. Defaults to the appropriate style in [FThemeData.dividerStyles].
+  /// The style.
   final FDividerStyle? style;
 
-  /// The axis. Defaults to horizontal.
+  /// The axis along which the divider is drawn. Defaults to horizontal.
   final Axis axis;
 
   /// Creates a [FDivider].
@@ -63,23 +64,23 @@ final class FDividerStyles with Diagnosticable, _$FDividerStylesFunctions {
   /// Creates a [FDividerStyles].
   FDividerStyles({required this.horizontalStyle, required this.verticalStyle});
 
-  /// Creates a [FDividerStyles] that inherits its properties from [color] and [style].
-  FDividerStyles.inherit({required FColorScheme color, required FStyle style})
+  /// Creates a [FDividerStyles] that inherits its properties.
+  FDividerStyles.inherit({required FColors colors, required FStyle style})
     : this(
         horizontalStyle: FDividerStyle(
-          color: color.secondary,
+          color: colors.secondary,
           padding: FDividerStyle.defaultPadding.horizontalStyle,
           width: style.borderWidth,
         ),
         verticalStyle: FDividerStyle(
-          color: color.secondary,
+          color: colors.secondary,
           padding: FDividerStyle.defaultPadding.verticalStyle,
           width: style.borderWidth,
         ),
       );
 }
 
-/// [FDivider]'s style.
+/// The divider style.
 ///
 /// The [padding] property can be used to indent the start and end of the separating line.
 final class FDividerStyle with Diagnosticable, _$FDividerStyleFunctions {

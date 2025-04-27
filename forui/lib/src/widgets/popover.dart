@@ -6,7 +6,6 @@ import 'package:meta/meta.dart';
 
 import 'package:forui/forui.dart';
 import 'package:forui/src/foundation/rendering.dart';
-import 'package:forui/src/foundation/tappable.dart';
 
 part 'popover.style.dart';
 
@@ -21,7 +20,7 @@ final class FPopoverController extends FChangeNotifier {
   late final Animation<double> _scale;
 
   /// Creates a [FPopoverController] with the given [vsync] and animation [animationDuration].
-  FPopoverController({required TickerProvider vsync, animationDuration = const Duration(milliseconds: 100)}) {
+  FPopoverController({required TickerProvider vsync, Duration animationDuration = const Duration(milliseconds: 100)}) {
     _animation = AnimationController(vsync: vsync, duration: animationDuration);
     _fade = _fadeTween.animate(_animation);
     _scale = _scaleTween.animate(_animation);
@@ -34,7 +33,7 @@ final class FPopoverController extends FChangeNotifier {
 
   /// Shows the popover.
   ///
-  /// If [shown] is already true, calling this method brings the popover it controls to the top.
+  /// If [shown] is already true, calling this method brings the popover to the top.
   ///
   /// This method should typically not be called while the widget tree is being rebuilt.
   Future<void> show() async {
@@ -46,7 +45,7 @@ final class FPopoverController extends FChangeNotifier {
   /// Hides the popover.
   ///
   /// Once hidden, the popover will be removed from the widget tree the next time the widget tree rebuilds, and stateful
-  /// widgets in the popover may lose states as a result.
+  /// widgets in the popover may lose their states as a result.
   ///
   /// This method should typically not be called while the widget tree is being rebuilt.
   Future<void> hide() async {
@@ -86,7 +85,7 @@ enum FHidePopoverRegion {
 class FPopover extends StatefulWidget {
   /// The platform-specific default popover and child anchors.
   static ({Alignment popover, Alignment child}) get defaultPlatform =>
-      Touch.primary
+      FTouch.primary
           ? (popover: Alignment.bottomCenter, child: Alignment.topCenter)
           : (popover: Alignment.topCenter, child: Alignment.bottomCenter);
 
@@ -97,7 +96,7 @@ class FPopover extends StatefulWidget {
   final FPopoverStyle? style;
 
   /// {@template forui.widgets.FPopover.popoverAnchor}
-  /// The point on the popover (floating content) that connects with the child, at the child's anchor.
+  /// The point on the popover (floating content) that connects with the child at the child's anchor.
   ///
   /// For example, [Alignment.topCenter] means the top-center point of the popover will connect with the child.
   /// See [childAnchor] for changing the child's anchor.
@@ -107,7 +106,7 @@ class FPopover extends StatefulWidget {
   final AlignmentGeometry popoverAnchor;
 
   /// {@template forui.widgets.FPopover.childAnchor}
-  /// The point on the child that connects with the popover, at the popover's anchor.
+  /// The point on the child that connects with the popover at the popover's anchor.
   ///
   /// For example, [Alignment.bottomCenter] means the bottom-center point of the child will connect with the popover.
   /// See [popoverAnchor] for changing the popover's anchor.
@@ -327,20 +326,20 @@ class FPopoverStyle with Diagnosticable, _$FPopoverStyleFunctions {
   @override
   final BoxDecoration decoration;
 
-  /// The margin surrounding the popover. Defaults to `EdgeInsets.all(4)`.
+  /// The padding surrounding the popover. Defaults to `EdgeInsets.all(4)`.
   @override
   final EdgeInsetsGeometry padding;
 
   /// Creates a [FPopoverStyle].
   const FPopoverStyle({required this.decoration, this.padding = const EdgeInsets.all(4)});
 
-  /// Creates a [FPopoverStyle] that inherits its properties from [color] and [style].
-  FPopoverStyle.inherit({required FColorScheme color, required FStyle style})
+  /// Creates a [FPopoverStyle] that inherits its properties.
+  FPopoverStyle.inherit({required FColors colors, required FStyle style})
     : this(
         decoration: BoxDecoration(
-          color: color.background,
+          color: colors.background,
           borderRadius: style.borderRadius,
-          border: Border.all(width: style.borderWidth, color: color.border),
+          border: Border.all(width: style.borderWidth, color: colors.border),
           boxShadow: style.shadow,
         ),
       );

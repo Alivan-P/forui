@@ -12,18 +12,10 @@ part 'style.style.dart';
 ///
 /// These properties are not used directly by Forui widgets. Instead, they are the defaults for the corresponding
 /// properties of widget styles configured via `inherit(...)` constructors.
-final class FStyle with Diagnosticable, _$FStyleFunctions {
-  /// The style for the form field when it is enabled.
+class FStyle with Diagnosticable, _$FStyleFunctions {
+  /// The style for the form field.
   @override
-  final FFormFieldStyle enabledFormFieldStyle;
-
-  /// The style for the form field when it is disabled.
-  @override
-  final FFormFieldStyle disabledFormFieldStyle;
-
-  /// The style for the form field when it has an error.
-  @override
-  final FFormFieldErrorStyle errorFormFieldStyle;
+  final FFormFieldStyle formFieldStyle;
 
   /// The focused outline style.
   @override
@@ -58,9 +50,7 @@ final class FStyle with Diagnosticable, _$FStyleFunctions {
   /// **Note:**
   /// Unless you are creating a completely new style, modifying [FThemes]' predefined styles should be preferred.
   const FStyle({
-    required this.enabledFormFieldStyle,
-    required this.disabledFormFieldStyle,
-    required this.errorFormFieldStyle,
+    required this.formFieldStyle,
     required this.focusedOutlineStyle,
     required this.iconStyle,
     required this.tappableStyle,
@@ -70,30 +60,15 @@ final class FStyle with Diagnosticable, _$FStyleFunctions {
     this.shadow = const [BoxShadow(color: Color(0x0d000000), offset: Offset(0, 1), blurRadius: 2)],
   });
 
-  /// Creates an [FStyle] that inherits its properties from the given [FColorScheme] and [FTypography].
-  FStyle.inherit({required FColorScheme color, required FTypography text})
+  /// Creates an [FStyle] that inherits its properties.
+  FStyle.inherit({required FColors colors, required FTypography typography})
     : this(
-        enabledFormFieldStyle: FFormFieldStyle.inherit(
-          labelColor: color.primary,
-          descriptionColor: color.mutedForeground,
-          text: text,
-        ),
-        disabledFormFieldStyle: FFormFieldStyle.inherit(
-          labelColor: color.disable(color.primary),
-          descriptionColor: color.disable(color.mutedForeground),
-          text: text,
-        ),
-        errorFormFieldStyle: FFormFieldErrorStyle.inherit(
-          labelColor: color.error,
-          descriptionColor: color.mutedForeground,
-          errorColor: color.error,
-          text: text,
-        ),
+        formFieldStyle: FFormFieldStyle.inherit(colors: colors, typography: typography),
         focusedOutlineStyle: FFocusedOutlineStyle(
-          color: color.primary,
+          color: colors.primary,
           borderRadius: const BorderRadius.all(Radius.circular(8)),
         ),
-        iconStyle: IconThemeData(color: color.primary, size: 20),
+        iconStyle: IconThemeData(color: colors.primary, size: 20),
         tappableStyle: FTappableStyle(),
       );
 }

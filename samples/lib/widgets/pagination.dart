@@ -77,22 +77,22 @@ class _PaginationCustomIconPageState extends StatefulSampleState<PaginationCusto
           next: Padding(
             padding: style.itemPadding,
             child: ConstrainedBox(
-              constraints: style.contentConstraints,
+              constraints: style.itemConstraints,
               child: FButton.icon(
                 style: FButtonStyle.ghost,
                 onPress: _controller.next,
-                child: IconTheme(data: style.iconStyle, child: const Icon(FIcons.bird)),
+                child: IconTheme(data: style.itemIconStyle.resolve({}), child: const Icon(FIcons.bird)),
               ),
             ),
           ),
           previous: Padding(
             padding: style.itemPadding,
             child: ConstrainedBox(
-              constraints: style.contentConstraints,
+              constraints: style.itemConstraints,
               child: FButton.icon(
                 style: FButtonStyle.ghost,
                 onPress: _controller.previous,
-                child: IconTheme(data: style.iconStyle, child: const Icon(FIcons.anchor)),
+                child: IconTheme(data: style.itemIconStyle.resolve({}), child: const Icon(FIcons.anchor)),
               ),
             ),
           ),
@@ -149,7 +149,7 @@ class _PaginationWithViewPageState extends StatefulSampleState<PaginationWithVie
 
   @override
   Widget sample(BuildContext context) {
-    final style = context.theme.color;
+    final colors = context.theme.colors;
     return Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -173,10 +173,10 @@ class _PaginationWithViewPageState extends StatefulSampleState<PaginationWithVie
               controller: controller,
               itemBuilder:
                   (context, index) => ColoredBox(
-                    color: index.isEven ? style.hover(style.primary) : style.mutedForeground,
+                    color: index.isEven ? colors.hover(colors.primary) : colors.mutedForeground,
                     child: Center(
                       child: DefaultTextStyle(
-                        style: TextStyle(fontSize: 45, color: style.primaryForeground),
+                        style: TextStyle(fontSize: 45, color: colors.primaryForeground),
                         child: Text('Page ${index + 1}'),
                       ),
                     ),

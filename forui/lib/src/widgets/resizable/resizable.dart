@@ -5,14 +5,13 @@ import 'package:meta/meta.dart';
 import 'package:sugar/sugar.dart';
 
 import 'package:forui/forui.dart';
-import 'package:forui/src/foundation/tappable.dart';
 import 'package:forui/src/widgets/resizable/divider.dart';
 
 part 'resizable.style.dart';
 
 /// A resizable allows its children to be resized along either the horizontal or vertical main axis.
 ///
-/// Each child is a [FResizableRegion] has a initial and minimum extent. Setting an initial extent less than the
+/// Each child is a [FResizableRegion] that has an initial and minimum extent. Setting an initial extent less than the
 /// minimum extent will result in undefined behaviour. The children are arranged from top to bottom, or left to right,
 /// depending on the main [axis].
 ///
@@ -86,7 +85,7 @@ class FResizable extends StatefulWidget {
          hitRegionExtent == null || 0 < hitRegionExtent,
          'The hitRegionExtent should be positive, but is $hitRegionExtent.',
        ),
-       hitRegionExtent = hitRegionExtent ?? (Touch.primary ? 60 : 10);
+       hitRegionExtent = hitRegionExtent ?? (FTouch.primary ? 60 : 10);
 
   @override
   State<StatefulWidget> createState() => _FResizableState();
@@ -272,24 +271,24 @@ final class FResizableStyle with Diagnosticable, _$FResizableStyleFunctions {
   FResizableStyle({required this.horizontalDividerStyle, required this.verticalDividerStyle});
 
   /// Creates a [FResizableStyle] that inherits its properties.
-  FResizableStyle.inherit({required FColorScheme color, required FStyle style})
+  FResizableStyle.inherit({required FColors colors, required FStyle style})
     : this(
         horizontalDividerStyle: FResizableDividerStyle(
-          color: color.border,
+          color: colors.border,
           focusedOutlineStyle: style.focusedOutlineStyle,
           thumbStyle: FResizableDividerThumbStyle(
-            decoration: BoxDecoration(color: color.border, borderRadius: style.borderRadius),
-            foregroundColor: color.foreground,
+            decoration: BoxDecoration(color: colors.border, borderRadius: style.borderRadius),
+            foregroundColor: colors.foreground,
             height: 20,
             width: 10,
           ),
         ),
         verticalDividerStyle: FResizableDividerStyle(
-          color: color.border,
+          color: colors.border,
           focusedOutlineStyle: style.focusedOutlineStyle,
           thumbStyle: FResizableDividerThumbStyle(
-            decoration: BoxDecoration(color: color.border, borderRadius: style.borderRadius),
-            foregroundColor: color.foreground,
+            decoration: BoxDecoration(color: colors.border, borderRadius: style.borderRadius),
+            foregroundColor: colors.foreground,
             height: 10,
             width: 20,
           ),

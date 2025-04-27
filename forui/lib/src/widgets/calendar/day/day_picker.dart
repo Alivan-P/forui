@@ -185,13 +185,13 @@ final class FCalendarDayPickerStyle with Diagnosticable, _$FCalendarDayPickerSty
   @override
   final TextStyle headerTextStyle;
 
-  /// The styles of selectable dates in the current month on display and the enclosing months.
+  /// The styles of dates in the current month.
   @override
-  final ({FCalendarDayStyle current, FCalendarDayStyle enclosing}) selectableStyles;
+  final FCalendarEntryStyle current;
 
-  /// The styles of unselectable dates in the current month on display and the enclosing months.
+  /// The styles of dates in the enclosing months.
   @override
-  final ({FCalendarDayStyle current, FCalendarDayStyle enclosing}) unselectableStyles;
+  final FCalendarEntryStyle enclosing;
 
   /// The starting day of the week. Defaults to the current locale's preferred starting day of the week if null.
   ///
@@ -214,8 +214,8 @@ final class FCalendarDayPickerStyle with Diagnosticable, _$FCalendarDayPickerSty
   /// Creates a [FCalendarDayPickerStyle].
   const FCalendarDayPickerStyle({
     required this.headerTextStyle,
-    required this.selectableStyles,
-    required this.unselectableStyles,
+    required this.current,
+    required this.enclosing,
     this.startDayOfWeek,
     this.tileSize = 42,
   }) : assert(
@@ -224,88 +224,52 @@ final class FCalendarDayPickerStyle with Diagnosticable, _$FCalendarDayPickerSty
        ),
        assert(0 < tileSize, 'tileSize must be positive.');
 
-  /// Creates a [FCalendarDayPickerStyle] that inherits from the given [colorScheme] and [typography].
-  factory FCalendarDayPickerStyle.inherit({
-    required FColorScheme colorScheme,
-    required FTypography typography,
-    required FStyle style,
-  }) {
-    final textStyle = typography.base.copyWith(color: colorScheme.foreground, fontWeight: FontWeight.w500);
+  /// Creates a [FCalendarDayPickerStyle] that inherits its properties.
+  factory FCalendarDayPickerStyle.inherit({required FColors colors, required FTypography typography}) {
     final mutedTextStyle = typography.base.copyWith(
-      color: colorScheme.disable(colorScheme.mutedForeground),
+      color: colors.disable(colors.mutedForeground),
       fontWeight: FontWeight.w500,
     );
 
-    final disabled = FCalendarDayStyle(
-      selectedStyle: FCalendarEntryStyle(
-        backgroundColor: colorScheme.primaryForeground,
-        textStyle: mutedTextStyle,
-        focusedBorderColor: colorScheme.primaryForeground,
-        radius: const Radius.circular(4),
-        tappableStyle: style.tappableStyle.copyWith(animationTween: FTappableAnimations.none),
-      ),
-      unselectedStyle: FCalendarEntryStyle(
-        backgroundColor: colorScheme.background,
-        textStyle: mutedTextStyle,
-        focusedBorderColor: colorScheme.background,
-        radius: const Radius.circular(4),
-        tappableStyle: style.tappableStyle.copyWith(animationTween: FTappableAnimations.none),
-      ),
-    );
+    final background = {
+      WidgetState.disabled & WidgetState.selected: colors.primaryForeground,
+      WidgetState.disabled: colors.background,
+    };
+
+    final border = {
+      WidgetState.disabled & WidgetState.selected & WidgetState.focused: colors.primaryForeground,
+      WidgetState.disabled & WidgetState.focused: colors.background,
+      WidgetState.focused: colors.foreground,
+    };
 
     return FCalendarDayPickerStyle(
-      headerTextStyle: typography.xs.copyWith(color: colorScheme.mutedForeground),
-      selectableStyles: (
-        current: FCalendarDayStyle(
-          selectedStyle: FCalendarEntryStyle(
-            backgroundColor: colorScheme.foreground,
-            textStyle: typography.base.copyWith(color: colorScheme.background, fontWeight: FontWeight.w500),
-            focusedBorderColor: colorScheme.foreground,
-            radius: const Radius.circular(4),
-            tappableStyle: style.tappableStyle.copyWith(animationTween: FTappableAnimations.none),
-          ),
-          unselectedStyle: FCalendarEntryStyle(
-            backgroundColor: colorScheme.background,
-            textStyle: textStyle,
-            hoveredBackgroundColor: colorScheme.secondary,
-            focusedBorderColor: colorScheme.foreground,
-            radius: const Radius.circular(4),
-            tappableStyle: style.tappableStyle.copyWith(animationTween: FTappableAnimations.none),
-          ),
-        ),
-        enclosing: FCalendarDayStyle(
-          selectedStyle: FCalendarEntryStyle(
-            backgroundColor: colorScheme.primaryForeground,
-            textStyle: mutedTextStyle,
-            focusedBorderColor: colorScheme.foreground,
-            radius: const Radius.circular(4),
-            tappableStyle: style.tappableStyle.copyWith(animationTween: FTappableAnimations.none),
-          ),
-          unselectedStyle: FCalendarEntryStyle(
-            backgroundColor: colorScheme.background,
-            textStyle: mutedTextStyle,
-            hoveredBackgroundColor: colorScheme.secondary,
-            focusedBorderColor: colorScheme.foreground,
-            radius: const Radius.circular(4),
-            tappableStyle: style.tappableStyle.copyWith(animationTween: FTappableAnimations.none),
-          ),
-        ),
+      headerTextStyle: typography.xs.copyWith(color: colors.mutedForeground),
+      current: FCalendarEntryStyle(
+        backgroundColor: FWidgetStateMap({
+          ...background,
+          WidgetState.selected: colors.foreground,
+          ~WidgetState.selected & (WidgetState.hovered | WidgetState.pressed): colors.secondary,
+          WidgetState.any: colors.background,
+        }),
+        borderColor: FWidgetStateMap(border),
+        textStyle: FWidgetStateMap({
+          WidgetState.disabled: mutedTextStyle,
+          WidgetState.selected: typography.base.copyWith(color: colors.background, fontWeight: FontWeight.w500),
+          WidgetState.any: typography.base.copyWith(color: colors.foreground, fontWeight: FontWeight.w500),
+        }),
+        radius: const Radius.circular(4),
       ),
-      unselectableStyles: (current: disabled, enclosing: disabled),
+      enclosing: FCalendarEntryStyle(
+        backgroundColor: FWidgetStateMap({
+          ...background,
+          WidgetState.selected: colors.primaryForeground,
+          ~WidgetState.selected & (WidgetState.hovered | WidgetState.pressed): colors.secondary,
+          WidgetState.any: colors.background,
+        }),
+        borderColor: FWidgetStateMap(border),
+        textStyle: FWidgetStateMap.all(mutedTextStyle),
+        radius: const Radius.circular(4),
+      ),
     );
   }
-}
-
-/// A calender day's style.
-final class FCalendarDayStyle with Diagnosticable, _$FCalendarDayStyleFunctions {
-  /// The selected dates' style.
-  @override
-  final FCalendarEntryStyle selectedStyle;
-
-  /// The unselected dates' style.
-  @override
-  final FCalendarEntryStyle unselectedStyle;
-
-  /// Creates a [FCalendarDayStyle].
-  const FCalendarDayStyle({required this.unselectedStyle, required this.selectedStyle});
 }

@@ -31,6 +31,7 @@ class _InputDateField extends FDateField {
     super.style,
     super.autofocus,
     super.focusNode,
+    super.builder,
     super.prefixBuilder,
     super.suffixBuilder,
     super.label,
@@ -81,26 +82,35 @@ class _InputDateFieldState extends _FDateFieldState<_InputDateField> {
   Widget build(BuildContext context) {
     final style = widget.style ?? context.theme.dateFieldStyle;
 
-    final ValueWidgetBuilder<FTextFieldStateStyle>? prefix = switch (widget.prefixBuilder) {
+    final ValueWidgetBuilder<(FTextFieldStyle, Set<WidgetState>)>? prefix = switch (widget.prefixBuilder) {
       null => null,
       final builder when widget.calendar != null =>
-        (context, stateStyle, child) =>
-            MouseRegion(cursor: SystemMouseCursors.click, child: builder(context, (style, stateStyle), child)),
-      final builder => (context, stateStyle, child) => builder(context, (style, stateStyle), child),
+        (context, styles, child) => MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: builder(context, (style, styles.$1, styles.$2), child),
+        ),
+      final builder => (context, styles, child) => builder(context, (style, styles.$1, styles.$2), child),
     };
 
-    final ValueWidgetBuilder<FTextFieldStateStyle>? suffix = switch (widget.suffixBuilder) {
+    final ValueWidgetBuilder<(FTextFieldStyle, Set<WidgetState>)>? suffix = switch (widget.suffixBuilder) {
       null => null,
       final builder when widget.calendar != null =>
-        (context, stateStyle, child) =>
-            MouseRegion(cursor: SystemMouseCursors.click, child: builder(context, (style, stateStyle), child)),
-      final builder => (context, stateStyle, child) => builder(context, (style, stateStyle), child),
+        (context, styles, child) => MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: builder(context, (style, styles.$1, styles.$2), child),
+        ),
+      final builder => (context, styles, child) => builder(context, (style, styles.$1, styles.$2), child),
     };
 
-    final ValueWidgetBuilder<FTextFieldStateStyle> builder = switch (widget.calendar) {
-      null => (_, _, child) => child!,
+    final ValueWidgetBuilder<(FTextFieldStyle, Set<WidgetState>)> builder = switch (widget.calendar) {
+      null => (context, data, child) => widget.builder(context, (style, data.$1, data.$2), child!),
       final properties =>
-        (_, _, child) => _CalendarPopover(controller: _controller, style: style, properties: properties, child: child!),
+        (context, data, child) => _CalendarPopover(
+          controller: _controller,
+          style: style,
+          properties: properties,
+          child: widget.builder(context, (style, data.$1, data.$2), child!),
+        ),
     };
 
     return DateInput(

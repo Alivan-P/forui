@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 
 import 'package:meta/meta.dart';
 
 import 'package:forui/forui.dart';
-import 'package:forui/src/foundation/tappable.dart';
 
 part 'slider_styles.style.dart';
 
@@ -21,121 +21,49 @@ final class FSliderStyles with Diagnosticable, _$FSliderStylesFunctions {
   /// Creates a [FSliderStyles].
   FSliderStyles({required this.horizontalStyle, required this.verticalStyle});
 
-  /// Creates a [FSliderStyles] that inherits its properties from the given [FColorScheme].
-  factory FSliderStyles.inherit({required FColorScheme color, required FTypography text, required FStyle style}) {
-    final enabledHorizontalStyle = FSliderStateStyle(
-      labelTextStyle: style.enabledFormFieldStyle.labelTextStyle,
-      descriptionTextStyle: style.enabledFormFieldStyle.descriptionTextStyle,
-      activeColor: color.primary,
-      inactiveColor: color.secondary,
-      markStyle: FSliderMarkStyle(
-        tickColor: color.mutedForeground,
-        labelTextStyle: text.xs.copyWith(color: color.mutedForeground),
-        labelAnchor: Alignment.topCenter,
-        labelOffset: 10,
-      ),
-      tooltipStyle: FTooltipStyle.inherit(color: color, text: text, style: style),
-      thumbStyle: FSliderThumbStyle(
-        color: color.primaryForeground,
-        borderColor: color.primary,
-        focusedOutlineStyle: style.focusedOutlineStyle,
-      ),
-    );
-
-    final disabledHorizontalStyle = FSliderStateStyle(
-      labelTextStyle: style.disabledFormFieldStyle.labelTextStyle,
-      descriptionTextStyle: style.disabledFormFieldStyle.descriptionTextStyle,
-      activeColor: color.disable(color.primary, color.secondary),
-      inactiveColor: color.secondary,
-      markStyle: FSliderMarkStyle(
-        tickColor: color.mutedForeground,
-        labelTextStyle: text.xs.copyWith(color: color.mutedForeground),
-        labelAnchor: Alignment.topCenter,
-        labelOffset: 10,
-      ),
-      tooltipStyle: FTooltipStyle.inherit(color: color, text: text, style: style),
-      thumbStyle: FSliderThumbStyle(
-        color: color.primaryForeground,
-        borderColor: color.disable(color.primary),
-        focusedOutlineStyle: style.focusedOutlineStyle,
-      ),
-    );
-
-    final errorHorizontalStyle = FSliderErrorStyle(
-      labelTextStyle: style.errorFormFieldStyle.labelTextStyle,
-      descriptionTextStyle: style.errorFormFieldStyle.descriptionTextStyle,
-      errorTextStyle: style.errorFormFieldStyle.errorTextStyle,
-      activeColor: color.error,
-      inactiveColor: color.secondary,
-      markStyle: FSliderMarkStyle(
-        tickColor: color.mutedForeground,
-        labelTextStyle: text.xs.copyWith(color: color.error),
-        labelAnchor: Alignment.topCenter,
-        labelOffset: 10,
-      ),
-      tooltipStyle: FTooltipStyle.inherit(color: color, text: text, style: style),
-      thumbStyle: FSliderThumbStyle(
-        color: color.errorForeground,
-        borderColor: color.error,
-        focusedOutlineStyle: style.focusedOutlineStyle,
-      ),
-    );
-
-    return FSliderStyles(
-      horizontalStyle: FSliderStyle(
-        labelLayoutStyle: const FLabelLayoutStyle(
-          labelPadding: EdgeInsets.only(bottom: 5),
-          childPadding: EdgeInsets.only(top: 10, bottom: 20, left: 10, right: 10),
-          descriptionPadding: EdgeInsets.only(top: 10),
-          errorPadding: EdgeInsets.only(top: 5),
+  /// Creates a [FSliderStyles] that inherits its properties.
+  FSliderStyles.inherit({required FColors colors, required FTypography typography, required FStyle style})
+    : this(
+        horizontalStyle: FSliderStyle.inherit(
+          colors: colors,
+          typography: typography,
+          style: style,
+          labelAnchor: Alignment.topCenter,
+          labelOffset: 10,
+          descriptionPadding: const EdgeInsets.only(top: 10),
+          childPadding: const EdgeInsets.only(top: 10, bottom: 20, left: 10, right: 10),
         ),
-        enabledStyle: enabledHorizontalStyle,
-        disabledStyle: disabledHorizontalStyle,
-        errorStyle: errorHorizontalStyle,
-      ),
-      verticalStyle: FSliderStyle(
-        labelLayoutStyle: const FLabelLayoutStyle(
-          labelPadding: EdgeInsets.only(bottom: 5),
-          childPadding: EdgeInsets.all(10),
-          descriptionPadding: EdgeInsets.only(top: 5),
-          errorPadding: EdgeInsets.only(top: 5),
+        verticalStyle: FSliderStyle.inherit(
+          colors: colors,
+          typography: typography,
+          style: style,
+          labelAnchor: Alignment.centerRight,
+          labelOffset: -10,
+          tooltipTipAnchor: FTouch.primary ? Alignment.bottomCenter : Alignment.centerLeft,
+          tooltipThumbAnchor: FTouch.primary ? Alignment.topCenter : Alignment.centerRight,
+          descriptionPadding: const EdgeInsets.only(top: 5),
+          childPadding: const EdgeInsets.all(10),
         ),
-        enabledStyle: enabledHorizontalStyle.transform(
-          (style) =>
-              style.copyWith(markStyle: style.markStyle.copyWith(labelAnchor: Alignment.centerRight, labelOffset: -10)),
-        ),
-        disabledStyle: disabledHorizontalStyle.transform(
-          (style) =>
-              style.copyWith(markStyle: style.markStyle.copyWith(labelAnchor: Alignment.centerRight, labelOffset: -10)),
-        ),
-        errorStyle: errorHorizontalStyle.transform(
-          (style) =>
-              style.copyWith(markStyle: style.markStyle.copyWith(labelAnchor: Alignment.centerRight, labelOffset: -10)),
-        ),
-        tooltipTipAnchor: Touch.primary ? Alignment.bottomCenter : Alignment.centerLeft,
-        tooltipThumbAnchor: Touch.primary ? Alignment.topCenter : Alignment.centerRight,
-      ),
-    );
-  }
+      );
 }
 
 /// A slider's style.
-final class FSliderStyle with Diagnosticable, _$FSliderStyleFunctions {
-  /// The label's layout style.
+final class FSliderStyle extends FLabelStyle with _$FSliderStyleFunctions {
+  /// The slider's active track colors.
+  ///
+  /// {@macro forui.foundation.doc_templates.WidgetStates.form}
   @override
-  final FLabelLayoutStyle labelLayoutStyle;
+  final FWidgetStateMap<Color> activeColor;
 
-  /// The enabled slider's style.
+  /// The slider's inactive track colors.
+  ///
+  /// {@macro forui.foundation.doc_templates.WidgetStates.form}
   @override
-  final FSliderStateStyle enabledStyle;
+  final FWidgetStateMap<Color> inactiveColor;
 
-  /// The disabled slider's style.
+  /// The slider's border radius.
   @override
-  final FSliderStateStyle disabledStyle;
-
-  /// The error slider's style.
-  @override
-  final FSliderErrorStyle errorStyle;
+  final BorderRadius borderRadius;
 
   /// The slider's cross-axis extent. Defaults to 8.
   ///
@@ -151,10 +79,22 @@ final class FSliderStyle with Diagnosticable, _$FSliderStyleFunctions {
   ///
   /// ## Implementation details
   /// This unfortunately has to be placed outside of FSliderThumbStyle because [FSliderThumbStyle] is inside
-  /// [FSliderStateStyle]. Putting the thumb size inside [FSliderThumbStyle] will cause a cyclic rebuild to occur
-  /// whenever the window is resized due to some bad interaction between an internal LayoutBuilder and SliderFormField.
+  /// [FSliderStyle]. Putting the thumb size inside [FSliderThumbStyle] will cause a cyclic rebuild to occur
+  /// whenever the window is resized due to a bad interaction between an internal LayoutBuilder and SliderFormField.
   @override
   final double thumbSize;
+
+  /// The slider thumb's style.
+  @override
+  final FSliderThumbStyle thumbStyle;
+
+  /// The slider marks' style.
+  @override
+  final FSliderMarkStyle markStyle;
+
+  /// The tooltip's style.
+  @override
+  final FTooltipStyle tooltipStyle;
 
   /// The anchor of the tooltip to which the [tooltipThumbAnchor] is aligned to.
   ///
@@ -172,86 +112,72 @@ final class FSliderStyle with Diagnosticable, _$FSliderStyleFunctions {
 
   /// Creates a [FSliderStyle].
   FSliderStyle({
-    required this.labelLayoutStyle,
-    required this.enabledStyle,
-    required this.disabledStyle,
-    required this.errorStyle,
+    required this.activeColor,
+    required this.inactiveColor,
+    required this.thumbStyle,
+    required this.markStyle,
+    required this.tooltipStyle,
+    required super.labelTextStyle,
+    required super.descriptionTextStyle,
+    required super.errorTextStyle,
+    this.borderRadius = const BorderRadius.all(Radius.circular(4)),
     this.crossAxisExtent = 8,
     double? thumbSize,
     this.tooltipTipAnchor = Alignment.bottomCenter,
     this.tooltipThumbAnchor = Alignment.topCenter,
+    super.labelPadding = const EdgeInsets.only(bottom: 5),
+    super.descriptionPadding,
+    super.errorPadding = const EdgeInsets.only(top: 5),
+    super.childPadding,
   }) : assert(thumbSize == null || 0 < thumbSize, 'The thumb size must be positive'),
-       thumbSize = thumbSize ?? (Touch.primary ? 25 : 20);
-}
+       thumbSize = thumbSize ?? (FTouch.primary ? 25 : 20);
 
-/// A slider state's style.
-// ignore: avoid_implementing_value_types
-final class FSliderStateStyle with Diagnosticable, _$FSliderStateStyleFunctions implements FFormFieldStyle {
-  /// The label's [TextStyle].
-  @override
-  final TextStyle labelTextStyle;
-
-  /// The help/error's [TextStyle].
-  @override
-  final TextStyle descriptionTextStyle;
-
-  /// The slider's active track color.
-  @override
-  final Color activeColor;
-
-  /// The slider's inactive track color.
-  @override
-  final Color inactiveColor;
-
-  /// The slider's border radius.
-  @override
-  final BorderRadius borderRadius;
-
-  /// The slider marks' style.
-  @override
-  final FSliderMarkStyle markStyle;
-
-  /// The slider thumb's style.
-  @override
-  final FSliderThumbStyle thumbStyle;
-
-  /// The tooltip's style.
-  @override
-  final FTooltipStyle tooltipStyle;
-
-  /// Creates a [FSliderStateStyle].
-  FSliderStateStyle({
-    required this.labelTextStyle,
-    required this.descriptionTextStyle,
-    required this.activeColor,
-    required this.inactiveColor,
-    required this.markStyle,
-    required this.thumbStyle,
-    required this.tooltipStyle,
-    this.borderRadius = const BorderRadius.all(Radius.circular(4)),
-  });
-}
-
-/// A slider error's style.
-final class FSliderErrorStyle extends FSliderStateStyle
-    with _$FSliderErrorStyleFunctions
-    implements
-        // ignore: avoid_implementing_value_types
-        FFormFieldErrorStyle {
-  /// The error's [TextStyle].
-  @override
-  final TextStyle errorTextStyle;
-
-  /// Creates a [FSliderErrorStyle].
-  FSliderErrorStyle({
-    required this.errorTextStyle,
-    required super.labelTextStyle,
-    required super.descriptionTextStyle,
-    required super.activeColor,
-    required super.inactiveColor,
-    required super.markStyle,
-    required super.thumbStyle,
-    required super.tooltipStyle,
-    super.borderRadius,
-  });
+  /// Creates a [FSliderStyle] that inherits its properties.
+  FSliderStyle.inherit({
+    required FColors colors,
+    required FTypography typography,
+    required FStyle style,
+    required AlignmentGeometry labelAnchor,
+    required double labelOffset,
+    required EdgeInsetsGeometry descriptionPadding,
+    required EdgeInsetsGeometry childPadding,
+    AlignmentGeometry tooltipTipAnchor = Alignment.bottomCenter,
+    AlignmentGeometry tooltipThumbAnchor = Alignment.topCenter,
+  }) : this(
+         activeColor: FWidgetStateMap({
+           WidgetState.error: colors.error,
+           WidgetState.disabled: colors.disable(colors.primary, colors.secondary),
+           WidgetState.any: colors.primary,
+         }),
+         inactiveColor: FWidgetStateMap.all(colors.secondary),
+         thumbStyle: FSliderThumbStyle(
+           color: FWidgetStateMap({
+             WidgetState.error: colors.errorForeground,
+             WidgetState.any: colors.primaryForeground,
+           }),
+           borderColor: FWidgetStateMap({
+             WidgetState.error: colors.error,
+             WidgetState.disabled: colors.disable(colors.primary),
+             WidgetState.any: colors.primary,
+           }),
+           focusedOutlineStyle: style.focusedOutlineStyle,
+         ),
+         markStyle: FSliderMarkStyle(
+           tickColor: FWidgetStateMap.all(colors.mutedForeground),
+           labelTextStyle: FWidgetStateMap({
+             WidgetState.error: typography.xs.copyWith(color: colors.error),
+             WidgetState.any: typography.xs.copyWith(color: colors.mutedForeground),
+           }),
+           labelAnchor: labelAnchor,
+           labelOffset: labelOffset,
+         ),
+         tooltipStyle: FTooltipStyle.inherit(colors: colors, typography: typography, style: style),
+         tooltipTipAnchor: tooltipTipAnchor,
+         tooltipThumbAnchor: tooltipThumbAnchor,
+         labelTextStyle: style.formFieldStyle.labelTextStyle,
+         descriptionTextStyle: style.formFieldStyle.descriptionTextStyle,
+         errorTextStyle: style.formFieldStyle.errorTextStyle,
+         descriptionPadding: descriptionPadding,
+         childPadding: childPadding,
+       );
 }
