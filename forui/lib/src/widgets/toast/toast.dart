@@ -3,7 +3,6 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:forui/src/widgets/toast/data.dart';
 import 'package:forui/src/widgets/toast/util.dart';
 
 const kDefaultDuration = Duration(milliseconds: 150);
