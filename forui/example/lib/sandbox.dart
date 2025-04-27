@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:forui/forui.dart';
+import 'package:forui/src/widgets/toast/toast.dart';
 
 class Sandbox extends StatefulWidget {
   const Sandbox({super.key});
@@ -36,6 +37,14 @@ class _SandboxState extends State<Sandbox> {
     }
   }
 
+  Widget buildToast(BuildContext context, ToastOverlay overlay) => const Card(
+    child: FLabel(
+      label: Text('Event has been created'),
+      axis: Axis.vertical,
+      child: Text('Sunday, July 07, 2024 at 12:00 PM'),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min,
@@ -67,6 +76,44 @@ class _SandboxState extends State<Sandbox> {
         ),
       ),
       SizedBox(height: 200, child: FPagination(controller: paginationController, onChange: _handlePageChanged)),
+
+      FButton(
+        child: const Text('bottom left'),
+        onPress: () {
+          showToast(context: context, builder: buildToast, location: ToastLocation.bottomLeft);
+        },
+      ),
+      FButton(
+        child: const Text('bottom center'),
+        onPress: () {
+          showToast(context: context, builder: buildToast, location: ToastLocation.bottomCenter);
+        },
+      ),
+      FButton(
+        child: const Text('bottom right'),
+        onPress: () {
+          showToast(context: context, builder: buildToast, location: ToastLocation.bottomRight);
+        },
+      ),
+
+      FButton(
+        child: const Text('top left'),
+        onPress: () {
+          showToast(context: context, builder: buildToast, location: ToastLocation.topLeft);
+        },
+      ),
+      FButton(
+        child: const Text('top center'),
+        onPress: () {
+          showToast(context: context, builder: buildToast, location: ToastLocation.topCenter);
+        },
+      ),
+      FButton(
+        child: const Text('top right'),
+        onPress: () {
+          showToast(context: context, builder: buildToast, location: ToastLocation.topRight);
+        },
+      ),
     ],
   );
 

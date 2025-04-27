@@ -156,7 +156,7 @@ class _ToastLayerState extends State<ToastLayer> {
       int toastIndex = 0;
       var collapsedOffset = widget.collapsedOffset ?? (const Offset(0, 12) * scaling);
       var padding = widget.padding?.optionallyResolve(context) ?? (const EdgeInsets.all(24) * scaling);
-      var toastConstraints = widget.toastConstraints ?? BoxConstraints.tightFor(width: 320 * scaling);
+      var toastConstraints = widget.toastConstraints ?? const BoxConstraints.tightFor(width: 320 * scaling);
       for (var i = entries.length - 1; i >= startVisible; i--) {
         var entry = entries[i];
         positionedChildren.insert(

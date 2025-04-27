@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:forui/src/widgets/toast/toast.dart';
 
 import 'package:meta/meta.dart';
 
@@ -75,7 +76,7 @@ class FScaffold extends StatelessWidget {
             Column(
               children: [
                 if (header != null) DecoratedBox(decoration: style.headerDecoration, child: header!),
-                Expanded(child: child),
+                Expanded(child: ToastLayer(child: child)),
               ],
             ),
             footer,

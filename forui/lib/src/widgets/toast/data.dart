@@ -201,9 +201,8 @@ class ForwardableDataState<T> extends State<ForwardableData<T>> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Data<T>.inherit(data: widget.data, child: DataMessenger<T>(child: widget.child));
-  }
+  Widget build(BuildContext context) =>
+      Data<T>.inherit(data: widget.data, child: DataMessenger<T>(child: widget.child));
 }
 
 /// An internal interface that provides dataType and wrap method.
@@ -229,20 +228,14 @@ class DataNotifier<T> extends StatelessWidget implements MultiDataItem {
   const DataNotifier.inherit({super.key, required this.notifier, required Widget child}) : _child = child;
 
   @override
-  Widget wrapWidget(Widget child) {
-    return DataNotifier<T>.inherit(notifier: notifier, child: child);
-  }
+  Widget wrapWidget(Widget child) => DataNotifier<T>.inherit(notifier: notifier, child: child);
 
   @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: notifier,
-      builder: (context, value, child) {
-        return Data<T>.inherit(data: value, child: child!);
-      },
-      child: _child,
-    );
-  }
+  Widget build(BuildContext context) => ValueListenableBuilder(
+    valueListenable: notifier,
+    builder: (context, value, child) => Data<T>.inherit(data: value, child: child!),
+    child: _child,
+  );
 
   @override
   Type get dataType => T;
@@ -337,9 +330,7 @@ class Data<T> extends StatelessWidget implements MultiDataItem {
   }
 
   @override
-  Widget wrapWidget(Widget child) {
-    return _InheritedData<T>._internal(key: key, data: _data, child: child);
-  }
+  Widget wrapWidget(Widget child) => _InheritedData<T>._internal(key: key, data: _data, child: child);
 
   @override
   Widget build(BuildContext context) {
@@ -510,9 +501,8 @@ class Data<T> extends StatelessWidget implements MultiDataItem {
   ///
   /// * [context] The context to capture the data.
   /// * [child] The child widget that can receive the data.
-  static Widget captureAll(BuildContext context, Widget child, {BuildContext? to}) {
-    return capture(from: context, to: to).wrap(child);
-  }
+  static Widget captureAll(BuildContext context, Widget child, {BuildContext? to}) =>
+      capture(from: context, to: to).wrap(child);
 
   /// Capture all the data from another context.
   ///
@@ -574,7 +564,7 @@ class _InheritedData<T> extends InheritedWidget {
   }
 
   Widget? wrap(Widget child, BuildContext context) {
-    _InheritedData<T>? ancestor = context.dependOnInheritedWidgetOfExactType<_InheritedData<T>>();
+    final ancestor = context.dependOnInheritedWidgetOfExactType<_InheritedData<T>>();
     // if it's the same type, we don't need to wrap it
     if (identical(this, ancestor)) {
       return null;
@@ -594,9 +584,7 @@ class CapturedData {
   final List<_InheritedData> _data;
 
   /// Wraps the child widget with the captured data.
-  Widget wrap(Widget child) {
-    return _CaptureAllData(data: _data, child: child);
-  }
+  Widget wrap(Widget child) => _CaptureAllData(data: _data, child: child);
 }
 
 class _CaptureAllData extends StatelessWidget {
@@ -609,7 +597,7 @@ class _CaptureAllData extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget result = child;
     for (final data in data) {
-      var wrap = data.wrap(result, context);
+      final wrap = data.wrap(result, context);
       if (wrap == null) {
         continue;
       }
