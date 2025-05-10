@@ -11,28 +11,8 @@ T tweenValue<T>(T begin, T end, double t) {
   return (beginValue + (endValue - beginValue) * t) as T;
 }
 
-extension AlignmentExtension on AlignmentGeometry {
-  Alignment optionallyResolve(BuildContext context) {
-    // Why?
-    // Because this checks first if the alignment is already an Alignment
-    // before resolving the alignment based on the directionality of the context.
-    if (this is Alignment) {
-      return this as Alignment;
-    }
-    // The code belows also ignores if the alignment is already resolved,
-    // but the code below fetches the directionality of the context.
-    return resolve(Directionality.of(context));
-  }
-}
 
-extension EdgeInsetsExtension on EdgeInsetsGeometry {
-  EdgeInsets optionallyResolve(BuildContext context) {
-    if (this is EdgeInsets) {
-      return this as EdgeInsets;
-    }
-    return resolve(Directionality.of(context));
-  }
-}
+
 
 typedef AnimatedChildBuilder<T> = Widget Function(BuildContext context, T value, Widget? child);
 typedef AnimationBuilder<T> = Widget Function(BuildContext context, Animation<T> animation);

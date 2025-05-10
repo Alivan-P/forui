@@ -5,10 +5,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:forui/forui.dart';
 import 'package:forui/src/widgets/toast/util.dart';
+import 'package:meta/meta.dart';
 
 const kDefaultDuration = Duration(milliseconds: 150);
-
-const scaling = 1.0;
 
 enum ToastLocation {
   topLeft(childrenAlignment: Alignment.bottomCenter, alignment: Alignment.topLeft),
@@ -18,8 +17,8 @@ enum ToastLocation {
   bottomCenter(childrenAlignment: Alignment.topCenter, alignment: Alignment.bottomCenter),
   bottomRight(childrenAlignment: Alignment.topCenter, alignment: Alignment.bottomRight);
 
-  final AlignmentGeometry alignment;
-  final AlignmentGeometry childrenAlignment;
+  final Alignment alignment;
+  final Alignment childrenAlignment;
 
   const ToastLocation({required this.alignment, required this.childrenAlignment});
 }
@@ -32,7 +31,7 @@ class FToastData extends InheritedWidget {
   ///
   /// ## Contract
   /// Throws [AssertionError] if there is no ancestor [FToast] in the given [context].
-  static FToastData? of(BuildContext context) {
+  static FToastData of(BuildContext context) {
     final data = context.dependOnInheritedWidgetOfExactType<FToastData>();
     assert(data != null, 'No FToastData found in context');
     return data!;
@@ -69,15 +68,14 @@ ToastOverlay showToast({
   Duration showDuration = const Duration(seconds: 5),
 }) {
   final data = FToastData.of(context);
-  final layer = data?.data;
-  assert(layer != null, 'No ToastLayer found in context');
+  final layer = data.data;
   final entry = ToastEntry(
     builder: builder,
     location: location,
     dismissible: dismissible,
     curve: curve,
     duration: entryDuration,
-    style: style ?? data?.style,
+    style: style ?? data.style,
     onClosed: onClosed,
     showDuration: showDuration,
   );
@@ -90,17 +88,15 @@ class FToastLayer extends StatefulWidget {
   /// The style. Defaults to [FThemeData.toastStyle].
   final FToastStyle? style;
 
+  /// The maximum number of stacked entries. Defaults to 3.
   final int maxStackedEntries;
-  final EdgeInsetsGeometry? padding;
+
   final ExpandMode expandMode;
   final Offset? collapsedOffset;
   final double collapsedScale;
   final Curve expandingCurve;
-  final Duration expandingDuration;
   final double collapsedOpacity;
   final double entryOpacity;
-  final double spacing;
-  final BoxConstraints? toastConstraints;
   final Widget child;
 
   const FToastLayer({
@@ -108,16 +104,12 @@ class FToastLayer extends StatefulWidget {
     required this.child,
     this.style,
     this.maxStackedEntries = 3,
-    this.padding,
     this.expandMode = ExpandMode.expandOnHover,
     this.collapsedOffset,
     this.collapsedScale = 0.9,
     this.expandingCurve = Curves.easeOutCubic,
-    this.expandingDuration = const Duration(milliseconds: 500),
     this.collapsedOpacity = 1,
     this.entryOpacity = 0.0,
-    this.spacing = 8,
-    this.toastConstraints,
   });
 
   @override
@@ -129,16 +121,12 @@ class FToastLayer extends StatefulWidget {
     properties
       ..add(DiagnosticsProperty('style', style))
       ..add(DiagnosticsProperty('maxStackedEntries', maxStackedEntries))
-      ..add(DiagnosticsProperty('padding', padding))
       ..add(DiagnosticsProperty('expandMode', expandMode))
       ..add(DiagnosticsProperty('collapsedOffset', collapsedOffset))
       ..add(DiagnosticsProperty('collapsedScale', collapsedScale))
       ..add(DiagnosticsProperty('expandingCurve', expandingCurve))
-      ..add(DiagnosticsProperty('expandingDuration', expandingDuration))
       ..add(DiagnosticsProperty('collapsedOpacity', collapsedOpacity))
-      ..add(DiagnosticsProperty('entryOpacity', entryOpacity))
-      ..add(DiagnosticsProperty('spacing', spacing))
-      ..add(DiagnosticsProperty('toastConstraints', toastConstraints));
+      ..add(DiagnosticsProperty('entryOpacity', entryOpacity));
   }
 }
 
@@ -149,7 +137,7 @@ class _ToastLocationData {
 }
 
 class _FToastLayerState extends State<FToastLayer> {
-  final Map<ToastLocation, _ToastLocationData> entries = {
+  final Map<ToastLocation, _ToastLocationData> _entries = {
     ToastLocation.topLeft: _ToastLocationData(),
     ToastLocation.topCenter: _ToastLocationData(),
     ToastLocation.topRight: _ToastLocationData(),
@@ -162,25 +150,23 @@ class _FToastLayerState extends State<FToastLayer> {
     if (!mounted) {
       return;
     }
-    setState(() {
-      // this will rebuild the toast entries
-    });
+    setState(() {});
   }
 
   ToastOverlay addEntry(ToastEntry entry) {
     final attachedToastEntry = ToastOverlay(entry, this);
     setState(() {
-      final entries = this.entries[entry.location];
+      final entries = _entries[entry.location];
       entries!.entries.add(attachedToastEntry);
     });
     return attachedToastEntry;
   }
 
   void removeEntry(ToastEntry entry) {
-    final last = entries[entry.location]!.entries.where((e) => e.entry == entry).lastOrNull;
+    final last = _entries[entry.location]!.entries.where((e) => e.entry == entry).lastOrNull;
     if (last != null) {
       setState(() {
-        entries[entry.location]!.entries.remove(last);
+        _entries[entry.location]!.entries.remove(last);
       });
     }
   }
@@ -190,19 +176,18 @@ class _FToastLayerState extends State<FToastLayer> {
     final style = widget.style ?? context.theme.toastStyle;
     final reservedEntries = widget.maxStackedEntries;
     final children = [widget.child];
-    for (final locationEntry in entries.entries) {
+    for (final locationEntry in _entries.entries) {
       final location = locationEntry.key;
       final entries = locationEntry.value.entries;
       final expanding = locationEntry.value._expanding;
       final startVisible = (entries.length - (widget.maxStackedEntries + reservedEntries)).max(
         0,
       ); // reserve some invisible toast as for the ghost entry depending animation speed
-      final entryAlignment = location.childrenAlignment.optionallyResolve(context) * -1;
+      final entryAlignment = location.childrenAlignment * -1;
       final positionedChildren = <Widget>[];
       int toastIndex = 0;
-      final collapsedOffset = widget.collapsedOffset ?? (const Offset(0, 12) * scaling);
-      final padding = widget.padding?.optionallyResolve(context) ?? (const EdgeInsets.all(24) * scaling);
-      final toastConstraints = widget.toastConstraints ?? const BoxConstraints.tightFor(width: 320 * scaling);
+      final collapsedOffset = widget.collapsedOffset ?? (const Offset(0, 12) * style.scaling);
+      final padding = style.padding;
       for (var i = entries.length - 1; i >= startVisible; i--) {
         final entry = entries[i];
         positionedChildren.insert(
@@ -221,7 +206,7 @@ class _FToastLayerState extends State<FToastLayer> {
             collapsedOffset: collapsedOffset,
             collapsedScale: widget.collapsedScale,
             expandingCurve: widget.expandingCurve,
-            expandingDuration: widget.expandingDuration,
+            expandingDuration: style.expandingDuration,
             collapsedOpacity: widget.collapsedOpacity,
             entryOpacity: widget.entryOpacity,
             onClosed: () {
@@ -233,11 +218,11 @@ class _FToastLayerState extends State<FToastLayer> {
               padding.top * entryAlignment.y.clamp(0, 1) + padding.bottom * entryAlignment.y.clamp(-1, 0),
             ),
             entryAlignment: entryAlignment,
-            spacing: widget.spacing,
+            spacing: style.spacing,
             index: toastIndex,
             actualIndex: entries.length - i - 1,
             onClosing: () => entry.close(),
-            child: ConstrainedBox(constraints: toastConstraints, child: entry.entry.builder(context, entry)),
+            child: ConstrainedBox(constraints: style.toastConstraints, child: entry.entry.builder(context, entry)),
           ),
         );
         if (!entry._isClosing.value) {
@@ -279,7 +264,7 @@ class _FToastLayerState extends State<FToastLayer> {
                     });
                   },
                   child: ConstrainedBox(
-                    constraints: toastConstraints,
+                    constraints: style.toastConstraints,
                     child: Stack(
                       alignment: location.alignment,
                       clipBehavior: Clip.none,
@@ -294,11 +279,6 @@ class _FToastLayerState extends State<FToastLayer> {
         ),
       );
     }
-    // return Data.inherit(
-    //   data: this,
-    //   child: Stack(clipBehavior: Clip.none, fit: StackFit.passthrough, children: children),
-    // );
-
     return FToastData(
       style: style,
       data: this,
@@ -307,21 +287,22 @@ class _FToastLayerState extends State<FToastLayer> {
   }
 }
 
+@internal
 class ToastOverlay {
-  //seems to rebuild if the Key is not a globalKey
-  final GlobalKey<_ToastEntryLayoutState> key = GlobalKey();
+  /// The key of the toast entry.
+  final GlobalKey key = GlobalKey();
+  /// The toast entry.
   final ToastEntry entry;
 
   _FToastLayerState? _attached;
-
-  bool get isShowing => _attached != null;
-
   final ValueNotifier<bool> _isClosing = ValueNotifier(false);
 
   ToastOverlay(this.entry, this._attached);
 
-  //ToastOverlay(this.entry, this._attached) : key = ObjectKey(entry);
+  /// True if the toast is attached to the overlay.
+  bool get isShowing => _attached != null;
 
+  /// Removes the toast entry from the overlay.
   void close() {
     if (_attached == null) {
       return;
@@ -332,6 +313,7 @@ class ToastOverlay {
   }
 }
 
+@internal
 class ToastEntry {
   final ToastBuilder builder;
   final ToastLocation location;
@@ -345,26 +327,26 @@ class ToastEntry {
   ToastEntry({
     required this.builder,
     required this.location,
+    required this.style,
     this.dismissible = true,
     this.curve = Curves.easeInOut,
     this.duration = kDefaultDuration,
-    required this.style,
     this.onClosed,
     this.showDuration = const Duration(seconds: 5),
   });
 }
 
+@internal
 class ToastEntryLayout extends StatefulWidget {
   final ToastEntry entry;
   final bool expanded;
   final bool visible;
   final bool dismissible;
-  final AlignmentGeometry previousAlignment;
+  final Alignment previousAlignment;
   final Curve curve;
   final Duration duration;
   final FToastStyle style;
   final ValueListenable<bool> closing;
-  final VoidCallback onClosed;
   final Offset collapsedOffset;
   final double collapsedScale;
   final Curve expandingCurve;
@@ -373,30 +355,21 @@ class ToastEntryLayout extends StatefulWidget {
   final double entryOpacity;
   final Widget child;
   final Offset entryOffset;
-  final AlignmentGeometry entryAlignment;
+  final Alignment entryAlignment;
   final double spacing;
   final int index;
   final int actualIndex;
-  final VoidCallback? onClosing;
+  final VoidCallback onClosing;
+  final VoidCallback onClosed;
 
   const ToastEntryLayout({
-    super.key,
     required this.entry,
     required this.expanded,
-    this.visible = true,
-    this.dismissible = true,
-    this.previousAlignment = Alignment.center,
-    this.curve = Curves.easeInOut,
-    this.duration = kDefaultDuration,
     required this.style,
     required this.closing,
     required this.onClosed,
     required this.collapsedOffset,
     required this.collapsedScale,
-    this.expandingCurve = Curves.easeInOut,
-    this.expandingDuration = kDefaultDuration,
-    this.collapsedOpacity = 0.8,
-    this.entryOpacity = 0.0,
     required this.entryOffset,
     required this.child,
     required this.entryAlignment,
@@ -404,10 +377,49 @@ class ToastEntryLayout extends StatefulWidget {
     required this.index,
     required this.actualIndex,
     required this.onClosing,
+    this.expandingCurve = Curves.easeInOut,
+    this.expandingDuration = kDefaultDuration,
+    this.collapsedOpacity = 0.8,
+    this.entryOpacity = 0.0,
+    this.visible = true,
+    this.dismissible = true,
+    this.previousAlignment = Alignment.center,
+    this.curve = Curves.easeInOut,
+    this.duration = kDefaultDuration,
+    super.key,
   });
 
   @override
   State<ToastEntryLayout> createState() => _ToastEntryLayoutState();
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('entry', entry))
+      ..add(FlagProperty('expanded', value: expanded, ifTrue: 'expanded'))
+      ..add(FlagProperty('visible', value: visible, ifTrue: 'visible'))
+      ..add(FlagProperty('dismissible', value: dismissible, ifTrue: 'dismissible'))
+      ..add(DiagnosticsProperty('previousAlignment', previousAlignment))
+      ..add(DiagnosticsProperty('curve', curve))
+      ..add(DiagnosticsProperty('duration', duration))
+      ..add(DiagnosticsProperty('style', style))
+      ..add(DiagnosticsProperty('closing', closing))
+      ..add(DiagnosticsProperty('collapsedOffset', collapsedOffset))
+      ..add(DiagnosticsProperty('collapsedScale', collapsedScale))
+      ..add(DiagnosticsProperty('expandingCurve', expandingCurve))
+      ..add(DiagnosticsProperty('expandingDuration', expandingDuration))
+      ..add(DiagnosticsProperty('collapsedOpacity', collapsedOpacity))
+      ..add(DiagnosticsProperty('entryOpacity', entryOpacity))
+      ..add(DiagnosticsProperty('child', child))
+      ..add(DiagnosticsProperty('entryOffset', entryOffset))
+      ..add(DiagnosticsProperty('entryAlignment', entryAlignment))
+      ..add(DiagnosticsProperty('spacing', spacing))
+      ..add(DiagnosticsProperty('index', index))
+      ..add(DiagnosticsProperty('actualIndex', actualIndex))
+      ..add(DiagnosticsProperty('onClosing', onClosing))
+      ..add(DiagnosticsProperty('onClosed', onClosed));
+  }
 }
 
 class _ToastEntryLayoutState extends State<ToastEntryLayout> {
@@ -428,114 +440,119 @@ class _ToastEntryLayoutState extends State<ToastEntryLayout> {
     if (widget.entry.showDuration != null) {
       _closingTimer?.cancel();
       _closingTimer = Timer(widget.entry.showDuration!, () {
-        widget.onClosing?.call();
+        widget.onClosing.call();
       });
     }
   }
 
   @override
-  Widget build(BuildContext context) => MouseRegion(
-    key: _key,
-    hitTestBehavior: HitTestBehavior.deferToChild,
-    onEnter: (event) {
-      _closingTimer?.cancel();
-    },
-    onExit: (event) {
-      _startClosingTimer();
-    },
-    child: GestureDetector(
-      onHorizontalDragStart: (details) {
-        if (widget.dismissible) {
-          setState(() {
-            _closingTimer?.cancel();
-            _dismissing = true;
-          });
-        }
+  Widget build(BuildContext context) {
+    final style = FToastData.of(context).style;
+    return MouseRegion(
+      key: _key,
+      hitTestBehavior: HitTestBehavior.deferToChild,
+      onEnter: (event) {
+        _closingTimer?.cancel();
       },
-      onHorizontalDragUpdate: (details) {
-        if (widget.dismissible) {
-          setState(() {
-            _dismissOffset += details.primaryDelta! / context.size!.width;
-          });
-        }
+      onExit: (event) {
+        _startClosingTimer();
       },
-      onHorizontalDragEnd: (details) {
-        if (widget.dismissible) {
-          setState(() {
-            _dismissing = false;
-          });
-          // if its < -0.5 or > 0.5 dismiss it
-          if (_dismissOffset < -0.5) {
-            _closeDismissing = -1.0;
-          } else if (_dismissOffset > 0.5) {
-            _closeDismissing = 1.0;
-          } else {
-            _dismissOffset = 0;
-            _startClosingTimer();
+      child: GestureDetector(
+        onHorizontalDragStart: (details) {
+          if (widget.dismissible) {
+            setState(() {
+              _closingTimer?.cancel();
+              _dismissing = true;
+            });
           }
-        }
-      },
-      child: AnimatedBuilder(
-        animation: widget.closing,
-        builder:
-            (context, child) => AnimatedValueBuilder(
-              value: widget.closing.value ? 0.0 : _dismissOffset,
-              duration: _dismissing && !widget.closing.value ? Duration.zero : widget.style.animationDuration,
-              builder:
-                  (context, dismissProgress, child) => AnimatedValueBuilder(
-                    value: widget.closing.value ? 0.0 : _closeDismissing ?? 0.0,
-                    duration: widget.style.animationDuration,
-                    onEnd: (value) {
-                      if (value == -1.0 || value == 1.0) {
-                        widget.onClosed();
-                      }
-                    },
-                    builder:
-                        (context, closeDismissingProgress, child) => AnimatedValueBuilder(
-                          value: widget.index.toDouble(),
-                          curve: widget.curve,
-                          duration: widget.duration,
-                          builder:
-                              (context, indexProgress, child) => AnimatedValueBuilder(
-                                initialValue: widget.index > 0 ? 1.0 : 0.0,
-                                value: widget.closing.value && !_dismissing ? 0.0 : 1.0,
-                                curve: widget.curve,
-                                duration: widget.duration,
-                                onEnd: (value) {
-                                  if (value == 0.0 && widget.closing.value) {
-                                    widget.onClosed();
-                                  }
-                                },
-                                builder:
-                                    (context, showingProgress, child) => AnimatedValueBuilder(
-                                      value: widget.visible ? 1.0 : 0.0,
-                                      curve: widget.curve,
-                                      duration: widget.duration,
-                                      builder:
-                                          (context, visibleProgress, child) => AnimatedValueBuilder(
-                                            value: widget.expanded ? 1.0 : 0.0,
-                                            curve: widget.expandingCurve,
-                                            duration: widget.expandingDuration,
-                                            builder:
-                                                (context, expandProgress, child) => _buildToast(
-                                                  expandProgress,
-                                                  showingProgress,
-                                                  visibleProgress,
-                                                  indexProgress,
-                                                  dismissProgress,
-                                                  closeDismissingProgress,
-                                                ),
-                                          ),
-                                    ),
-                              ),
-                        ),
-                  ),
-            ),
+        },
+        onHorizontalDragUpdate: (details) {
+          if (widget.dismissible) {
+            setState(() {
+              _dismissOffset += details.primaryDelta! / context.size!.width;
+            });
+          }
+        },
+        onHorizontalDragEnd: (details) {
+          if (widget.dismissible) {
+            setState(() {
+              _dismissing = false;
+            });
+            // if its < -0.5 or > 0.5 dismiss it
+            if (_dismissOffset < -0.5) {
+              _closeDismissing = -1.0;
+            } else if (_dismissOffset > 0.5) {
+              _closeDismissing = 1.0;
+            } else {
+              _dismissOffset = 0;
+              _startClosingTimer();
+            }
+          }
+        },
+        child: AnimatedBuilder(
+          animation: widget.closing,
+          builder:
+              (context, child) => AnimatedValueBuilder(
+                value: widget.closing.value ? 0.0 : _dismissOffset,
+                duration: _dismissing && !widget.closing.value ? Duration.zero : widget.style.animationDuration,
+                builder:
+                    (context, dismissProgress, child) => AnimatedValueBuilder(
+                      value: widget.closing.value ? 0.0 : _closeDismissing ?? 0.0,
+                      duration: widget.style.animationDuration,
+                      onEnd: (value) {
+                        if (value == -1.0 || value == 1.0) {
+                          widget.onClosed();
+                        }
+                      },
+                      builder:
+                          (context, closeDismissingProgress, child) => AnimatedValueBuilder(
+                            value: widget.index.toDouble(),
+                            curve: widget.curve,
+                            duration: widget.duration,
+                            builder:
+                                (context, indexProgress, child) => AnimatedValueBuilder(
+                                  initialValue: widget.index > 0 ? 1.0 : 0.0,
+                                  value: widget.closing.value && !_dismissing ? 0.0 : 1.0,
+                                  curve: widget.curve,
+                                  duration: widget.duration,
+                                  onEnd: (value) {
+                                    if (value == 0.0 && widget.closing.value) {
+                                      widget.onClosed();
+                                    }
+                                  },
+                                  builder:
+                                      (context, showingProgress, child) => AnimatedValueBuilder(
+                                        value: widget.visible ? 1.0 : 0.0,
+                                        curve: widget.curve,
+                                        duration: widget.duration,
+                                        builder:
+                                            (context, visibleProgress, child) => AnimatedValueBuilder(
+                                              value: widget.expanded ? 1.0 : 0.0,
+                                              curve: widget.expandingCurve,
+                                              duration: widget.expandingDuration,
+                                              builder:
+                                                  (context, expandProgress, child) => _buildToast(
+                                                    style,
+                                                    expandProgress,
+                                                    showingProgress,
+                                                    visibleProgress,
+                                                    indexProgress,
+                                                    dismissProgress,
+                                                    closeDismissingProgress,
+                                                  ),
+                                            ),
+                                      ),
+                                ),
+                          ),
+                    ),
+              ),
+        ),
       ),
-    ),
-  );
+    );
+  }
 
   Widget _buildToast(
+    FToastStyle style,
     double expandProgress,
     double showingProgress,
     double visibleProgress,
@@ -547,7 +564,7 @@ class _ToastEntryLayoutState extends State<ToastEntryLayout> {
     var offset = widget.entryOffset * (1.0 - showingProgress);
 
     // when its behind another toast, shift it up based on index
-    final previousAlignment = widget.previousAlignment.optionallyResolve(context);
+    final previousAlignment = widget.previousAlignment;
     offset +=
         Offset(
           (widget.collapsedOffset.dx * previousAlignment.x) * nonCollapsingProgress,
@@ -556,8 +573,8 @@ class _ToastEntryLayoutState extends State<ToastEntryLayout> {
         indexProgress;
 
     final expandingShift = Offset(
-      previousAlignment.x * (16 * scaling) * expandProgress,
-      previousAlignment.y * (16 * scaling) * expandProgress,
+      previousAlignment.x * (16 * style.scaling) * expandProgress,
+      previousAlignment.y * (16 * style.scaling) * expandProgress,
     );
 
     offset += expandingShift;
@@ -570,7 +587,7 @@ class _ToastEntryLayoutState extends State<ToastEntryLayout> {
         ) *
         indexProgress;
 
-    final entryAlignment = widget.entryAlignment.optionallyResolve(context);
+    final entryAlignment = widget.entryAlignment;
     var fractionalOffset = Offset(
       entryAlignment.x * (1.0 - showingProgress),
       entryAlignment.y * (1.0 - showingProgress),
