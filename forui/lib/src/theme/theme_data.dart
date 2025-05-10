@@ -140,6 +140,9 @@ final class FThemeData with Diagnosticable, FTransformable {
   /// The time picker style.
   final FTimePickerStyle timePickerStyle;
 
+  /// The toast style.
+  final FToastStyle toastStyle;
+
   /// The tooltip style.
   final FTooltipStyle tooltipStyle;
 
@@ -186,6 +189,7 @@ final class FThemeData with Diagnosticable, FTransformable {
     FTileGroupStyle? tileGroupStyle,
     FTimeFieldStyle? timeFieldStyle,
     FTimePickerStyle? timePickerStyle,
+    FToastStyle? toastStyle,
     FTooltipStyle? tooltipStyle,
   }) {
     typography = typography ?? FTypography.inherit(colors: colors);
@@ -241,6 +245,7 @@ final class FThemeData with Diagnosticable, FTransformable {
       timeFieldStyle: timeFieldStyle ?? FTimeFieldStyle.inherit(colors: colors, typography: typography, style: style),
       timePickerStyle:
           timePickerStyle ?? FTimePickerStyle.inherit(colors: colors, typography: typography, style: style),
+      toastStyle: toastStyle ?? FToastStyle.inherit(colors: colors, typography: typography, style: style),
       tooltipStyle: tooltipStyle ?? FTooltipStyle.inherit(colors: colors, typography: typography, style: style),
     );
   }
@@ -287,6 +292,7 @@ final class FThemeData with Diagnosticable, FTransformable {
     required this.tileGroupStyle,
     required this.timeFieldStyle,
     required this.timePickerStyle,
+    required this.toastStyle,
     required this.tooltipStyle,
   });
 
@@ -710,6 +716,7 @@ final class FThemeData with Diagnosticable, FTransformable {
     FTextFieldStyle? textFieldStyle,
     FTileGroupStyle? tileGroupStyle,
     FTimeFieldStyle? timeFieldStyle,
+    FToastStyle? toastStyle,
     FTooltipStyle? tooltipStyle,
   }) => FThemeData(
     colors: colors,
@@ -750,6 +757,7 @@ final class FThemeData with Diagnosticable, FTransformable {
     textFieldStyle: textFieldStyle ?? this.textFieldStyle,
     tileGroupStyle: tileGroupStyle ?? this.tileGroupStyle,
     timeFieldStyle: timeFieldStyle ?? this.timeFieldStyle,
+    toastStyle: toastStyle ?? this.toastStyle,
     tooltipStyle: tooltipStyle ?? this.tooltipStyle,
   );
 
@@ -798,6 +806,7 @@ final class FThemeData with Diagnosticable, FTransformable {
       ..add(DiagnosticsProperty('tileGroupStyle', tileGroupStyle, level: DiagnosticLevel.debug))
       ..add(DiagnosticsProperty('timeFieldStyle', timeFieldStyle, level: DiagnosticLevel.debug))
       ..add(DiagnosticsProperty('timePickerStyle', timePickerStyle, level: DiagnosticLevel.debug))
+      ..add(DiagnosticsProperty('toastStyle', toastStyle, level: DiagnosticLevel.debug))
       ..add(DiagnosticsProperty('tooltipStyle', tooltipStyle, level: DiagnosticLevel.debug));
   }
 
@@ -846,6 +855,7 @@ final class FThemeData with Diagnosticable, FTransformable {
           tileGroupStyle == other.tileGroupStyle &&
           timeFieldStyle == other.timeFieldStyle &&
           timePickerStyle == other.timePickerStyle &&
+          toastStyle == other.toastStyle &&
           tooltipStyle == other.tooltipStyle;
 
   @override
@@ -890,5 +900,6 @@ final class FThemeData with Diagnosticable, FTransformable {
       tileGroupStyle.hashCode ^
       timeFieldStyle.hashCode ^
       timePickerStyle.hashCode ^
+      toastStyle.hashCode ^
       tooltipStyle.hashCode;
 }

@@ -77,7 +77,7 @@ class FScaffold extends StatelessWidget {
             Column(
               children: [
                 if (header != null) DecoratedBox(decoration: style.headerDecoration, child: header!),
-                Expanded(child: ToastLayer(child: child)),
+                Expanded(child: FToastLayer(child: child)),
               ],
             ),
             footer,
