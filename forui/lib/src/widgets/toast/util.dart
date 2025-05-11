@@ -1,19 +1,5 @@
 import 'package:flutter/widgets.dart';
 
-extension IntExtension on int {
-  int min(int other) => this < other ? this : other;
-  int max(int other) => this > other ? this : other;
-}
-
-T tweenValue<T>(T begin, T end, double t) {
-  dynamic beginValue = begin;
-  dynamic endValue = end;
-  return (beginValue + (endValue - beginValue) * t) as T;
-}
-
-
-
-
 typedef AnimatedChildBuilder<T> = Widget Function(BuildContext context, T value, Widget? child);
 typedef AnimationBuilder<T> = Widget Function(BuildContext context, Animation<T> animation);
 typedef AnimatedChildValueBuilder<T> =

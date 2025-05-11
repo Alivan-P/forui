@@ -1,10 +1,10 @@
 /// {@category Widgets}
 ///
-/// A time picker that allows a time to be selected. It is composed of multiple wheels.
+/// A toast is a non-modal, unobtrusive window element used to display brief, auto-expiring information to the user.
 ///
-/// Recommended for touch devices.
+/// Recommended for web devices.
 ///
-/// See https://forui.dev/docs/form/time-picker for working examples.
+/// See https://forui.dev/docs/feedback/toast for working examples.
 library forui.widgets.toast;
 
 export '../src/widgets/toast/toast.dart';

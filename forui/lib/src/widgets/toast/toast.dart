@@ -7,8 +7,7 @@ import 'package:forui/forui.dart';
 import 'package:forui/src/widgets/toast/util.dart';
 import 'package:meta/meta.dart';
 
-const kDefaultDuration = Duration(milliseconds: 150);
-
+@internal
 enum ToastLocation {
   topLeft(childrenAlignment: Alignment.bottomCenter, alignment: Alignment.topLeft),
   topCenter(childrenAlignment: Alignment.bottomCenter, alignment: Alignment.topCenter),
@@ -22,8 +21,6 @@ enum ToastLocation {
 
   const ToastLocation({required this.alignment, required this.childrenAlignment});
 }
-
-typedef ToastBuilder = Widget Function(BuildContext context, ToastOverlay overlay);
 
 /// A Toast's data.
 class FToastData extends InheritedWidget {
@@ -41,7 +38,7 @@ class FToastData extends InheritedWidget {
   final FToastStyle style;
 
   /// The [FToastLayer] where the toast entry will be added to.
-  final _FToastLayerState? data;
+  final FToastLayerState? data;
 
   /// Creates a [FToastData].
   const FToastData({required this.style, required this.data, required super.child, super.key});
@@ -52,13 +49,16 @@ class FToastData extends InheritedWidget {
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty('style', style));
+    properties
+      ..add(DiagnosticsProperty('style', style))
+      ..add(DiagnosticsProperty('data', data));
   }
 }
 
+/// Displays the toast with the given configurations.
 ToastOverlay showToast({
   required BuildContext context,
-  required ToastBuilder builder,
+  required Widget Function(BuildContext context, ToastOverlay overlay) builder,
   FToastStyle? style,
   ToastLocation location = ToastLocation.bottomRight,
   bool dismissible = true,
@@ -69,6 +69,7 @@ ToastOverlay showToast({
 }) {
   final data = FToastData.of(context);
   final layer = data.data;
+  assert(layer != null, 'No ToastLayer found in context');
   final entry = ToastEntry(
     builder: builder,
     location: location,
@@ -79,54 +80,38 @@ ToastOverlay showToast({
     onClosed: onClosed,
     showDuration: showDuration,
   );
-  return layer.addEntry(entry);
+  return layer!.addEntry(entry);
 }
 
+/// How the toast should be expanded.
+@internal
 enum ExpandMode { alwaysExpanded, expandOnHover, expandOnTap, disabled }
 
+/// The Toast provider widget that manages and displays toast notifications.
+///
+/// This widget creates a stack where toast entries can be added, positioned,
+/// and animated. It acts as the central point for handling the layout and
+/// lifecycle of all toasts in the application.
+///
+/// Should be placed near the top of the widget tree to ensure global access
+/// and proper overlay behavior.
 class FToastLayer extends StatefulWidget {
   /// The style. Defaults to [FThemeData.toastStyle].
   final FToastStyle? style;
 
-  /// The maximum number of stacked entries. Defaults to 3.
-  final int maxStackedEntries;
-
-  final ExpandMode expandMode;
-  final Offset? collapsedOffset;
-  final double collapsedScale;
-  final Curve expandingCurve;
-  final double collapsedOpacity;
-  final double entryOpacity;
+  /// The child.
   final Widget child;
 
-  const FToastLayer({
-    required this.child,
-    this.style,
-    this.maxStackedEntries = 3,
-    this.expandMode = ExpandMode.expandOnHover,
-    this.collapsedOffset,
-    this.collapsedScale = 0.9,
-    this.expandingCurve = Curves.easeOutCubic,
-    this.collapsedOpacity = 1,
-    this.entryOpacity = 0.0,
-    super.key,
-  });
+  /// Creates a [FToastLayer].
+  const FToastLayer({required this.child, this.style, super.key});
 
   @override
-  State<FToastLayer> createState() => _FToastLayerState();
+  State<FToastLayer> createState() => FToastLayerState();
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties
-      ..add(DiagnosticsProperty('style', style))
-      ..add(DiagnosticsProperty('maxStackedEntries', maxStackedEntries))
-      ..add(DiagnosticsProperty('expandMode', expandMode))
-      ..add(DiagnosticsProperty('collapsedOffset', collapsedOffset))
-      ..add(DiagnosticsProperty('collapsedScale', collapsedScale))
-      ..add(DiagnosticsProperty('expandingCurve', expandingCurve))
-      ..add(DiagnosticsProperty('collapsedOpacity', collapsedOpacity))
-      ..add(DiagnosticsProperty('entryOpacity', entryOpacity));
+    properties.add(DiagnosticsProperty('style', style));
   }
 }
 
@@ -136,7 +121,8 @@ class _ToastLocationData {
   int _hoverCount = 0;
 }
 
-class _FToastLayerState extends State<FToastLayer> {
+/// The state of the [FToastLayer].
+class FToastLayerState extends State<FToastLayer> {
   final Map<ToastLocation, _ToastLocationData> _entries = {
     ToastLocation.topLeft: _ToastLocationData(),
     ToastLocation.topCenter: _ToastLocationData(),
@@ -153,6 +139,7 @@ class _FToastLayerState extends State<FToastLayer> {
     setState(() {});
   }
 
+  /// Adds a toast entry to the overlay.
   ToastOverlay addEntry(ToastEntry entry) {
     final attachedToastEntry = ToastOverlay(entry, this);
     setState(() {
@@ -162,6 +149,7 @@ class _FToastLayerState extends State<FToastLayer> {
     return attachedToastEntry;
   }
 
+  /// Removes a toast entry from the overlay.
   void removeEntry(ToastEntry entry) {
     final last = _entries[entry.location]!.entries.where((e) => e.entry == entry).lastOrNull;
     if (last != null) {
@@ -174,19 +162,15 @@ class _FToastLayerState extends State<FToastLayer> {
   @override
   Widget build(BuildContext context) {
     final style = widget.style ?? context.theme.toastStyle;
-    final reservedEntries = widget.maxStackedEntries;
     final children = [widget.child];
     for (final locationEntry in _entries.entries) {
       final location = locationEntry.key;
       final entries = locationEntry.value.entries;
       final expanding = locationEntry.value._expanding;
-      final startVisible = (entries.length - (widget.maxStackedEntries + reservedEntries)).max(
-        0,
-      ); // reserve some invisible toast as for the ghost entry depending animation speed
+      final startVisible = max(entries.length - (style.maxStackedEntries * 2),0);
       final entryAlignment = location.childrenAlignment * -1;
       final positionedChildren = <Widget>[];
       int toastIndex = 0;
-      final collapsedOffset = widget.collapsedOffset ?? (const Offset(0, 12) * style.scaling);
       final padding = style.padding;
       for (var i = entries.length - 1; i >= startVisible; i--) {
         final entry = entries[i];
@@ -195,20 +179,20 @@ class _FToastLayerState extends State<FToastLayer> {
           ToastEntryLayout(
             key: entry.key,
             entry: entry.entry,
-            expanded: expanding || widget.expandMode == ExpandMode.alwaysExpanded,
-            visible: toastIndex < widget.maxStackedEntries,
+            expanded: expanding || style.expandMode == ExpandMode.alwaysExpanded,
+            visible: toastIndex < style.maxStackedEntries,
             dismissible: entry.entry.dismissible,
             previousAlignment: location.childrenAlignment,
             curve: entry.entry.curve,
             duration: entry.entry.duration,
-            style: style,
             closing: entry._isClosing,
-            collapsedOffset: collapsedOffset,
-            collapsedScale: widget.collapsedScale,
-            expandingCurve: widget.expandingCurve,
+            style: style,
+            collapsedOffset: style.collapsedOffset,
+            collapsedScale: style.collapsedScale,
+            expandingCurve: style.expandingCurve,
             expandingDuration: style.expandingDuration,
-            collapsedOpacity: widget.collapsedOpacity,
-            entryOpacity: widget.entryOpacity,
+            collapsedOpacity: style.collapsedOpacity,
+            entryOpacity: style.entryOpacity,
             onClosed: () {
               removeEntry(entry.entry);
               entry.entry.onClosed?.call();
@@ -221,7 +205,7 @@ class _FToastLayerState extends State<FToastLayer> {
             spacing: style.spacing,
             index: toastIndex,
             actualIndex: entries.length - i - 1,
-            onClosing: () => entry.close(),
+            onClosing: entry.close,
             child: ConstrainedBox(constraints: style.toastConstraints, child: entry.entry.builder(context, entry)),
           ),
         );
@@ -243,7 +227,7 @@ class _FToastLayerState extends State<FToastLayer> {
                   hitTestBehavior: HitTestBehavior.deferToChild,
                   onEnter: (event) {
                     locationEntry.value._hoverCount++;
-                    if (widget.expandMode == ExpandMode.expandOnHover) {
+                    if (style.expandMode == ExpandMode.expandOnHover) {
                       setState(() {
                         locationEntry.value._expanding = true;
                       });
@@ -265,11 +249,17 @@ class _FToastLayerState extends State<FToastLayer> {
                   },
                   child: ConstrainedBox(
                     constraints: style.toastConstraints,
-                    child: Stack(
-                      alignment: location.alignment,
-                      clipBehavior: Clip.none,
-                      fit: StackFit.passthrough,
-                      children: positionedChildren,
+                    child: Column(
+                      // This is a workaround to ensure that the children occupy the minimum required height in the layout.
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Stack(
+                          alignment: location.alignment,
+                          clipBehavior: Clip.none,
+                          fit: StackFit.passthrough,
+                          children: positionedChildren,
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -295,7 +285,7 @@ class ToastOverlay {
   /// The toast entry.
   final ToastEntry entry;
 
-  _FToastLayerState? _attached;
+  FToastLayerState? _attached;
   final ValueNotifier<bool> _isClosing = ValueNotifier(false);
 
   ToastOverlay(this.entry, this._attached);
@@ -316,7 +306,7 @@ class ToastOverlay {
 
 @internal
 class ToastEntry {
-  final ToastBuilder builder;
+  final Widget Function(BuildContext context, ToastOverlay overlay) builder;
   final ToastLocation location;
   final bool dismissible;
   final Curve curve;
@@ -329,11 +319,11 @@ class ToastEntry {
     required this.builder,
     required this.location,
     required this.style,
+    required this.duration,
+    required this.showDuration,
     this.dismissible = true,
     this.curve = Curves.easeInOut,
-    this.duration = kDefaultDuration,
     this.onClosed,
-    this.showDuration = const Duration(seconds: 5),
   });
 }
 
@@ -346,7 +336,7 @@ class ToastEntryLayout extends StatefulWidget {
   final Alignment previousAlignment;
   final Curve curve;
   final Duration duration;
-  final FToastStyle style;
+  final FToastStyle? style;
   final ValueListenable<bool> closing;
   final Offset collapsedOffset;
   final double collapsedScale;
@@ -366,7 +356,7 @@ class ToastEntryLayout extends StatefulWidget {
   const ToastEntryLayout({
     required this.entry,
     required this.expanded,
-    required this.style,
+
     required this.closing,
     required this.onClosed,
     required this.collapsedOffset,
@@ -378,15 +368,17 @@ class ToastEntryLayout extends StatefulWidget {
     required this.index,
     required this.actualIndex,
     required this.onClosing,
+    required this.duration,
+    required this.expandingDuration,
+    this.style,
     this.expandingCurve = Curves.easeInOut,
-    this.expandingDuration = kDefaultDuration,
     this.collapsedOpacity = 0.8,
     this.entryOpacity = 0.0,
     this.visible = true,
     this.dismissible = true,
     this.previousAlignment = Alignment.center,
     this.curve = Curves.easeInOut,
-    this.duration = kDefaultDuration,
+
     super.key,
   });
 
@@ -448,7 +440,7 @@ class _ToastEntryLayoutState extends State<ToastEntryLayout> {
 
   @override
   Widget build(BuildContext context) {
-    final style = FToastData.of(context).style;
+    final style = widget.style ?? FToastData.of(context).style;
     return MouseRegion(
       key: _key,
       hitTestBehavior: HitTestBehavior.deferToChild,
@@ -495,11 +487,11 @@ class _ToastEntryLayoutState extends State<ToastEntryLayout> {
           builder:
               (context, child) => AnimatedValueBuilder(
                 value: widget.closing.value ? 0.0 : _dismissOffset,
-                duration: _dismissing && !widget.closing.value ? Duration.zero : widget.style.animationDuration,
+                duration: _dismissing && !widget.closing.value ? Duration.zero : style.animationDuration,
                 builder:
                     (context, dismissProgress, child) => AnimatedValueBuilder(
                       value: widget.closing.value ? 0.0 : _closeDismissing ?? 0.0,
-                      duration: widget.style.animationDuration,
+                      duration: style.animationDuration,
                       onEnd: (value) {
                         if (value == -1.0 || value == 1.0) {
                           widget.onClosed();
@@ -600,7 +592,7 @@ class _ToastEntryLayoutState extends State<ToastEntryLayout> {
     fractionalOffset +=
         Offset(expandProgress * previousAlignment.x, expandProgress * previousAlignment.y) * indexProgress;
 
-    var opacity = tweenValue(widget.entryOpacity, 1.0, showingProgress * visibleProgress);
+    double opacity = widget.entryOpacity + (1.0 - widget.entryOpacity) * (showingProgress * visibleProgress);
 
     // fade out the toast behind
     opacity *= pow(widget.collapsedOpacity, indexProgress * nonCollapsingProgress);

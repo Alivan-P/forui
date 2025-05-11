@@ -37,13 +37,8 @@ class _SandboxState extends State<Sandbox> {
     }
   }
 
-  Widget buildToast(BuildContext context, ToastOverlay overlay) => const Card(
-    child: FLabel(
-      label: Text('Event has been created'),
-      axis: Axis.vertical,
-      child: Text('Sunday, July 07, 2024 at 12:00 PM'),
-    ),
-  );
+  Widget buildToast(BuildContext context, ToastOverlay overlay) =>
+      FCard(title: Text('Event has been created'), subtitle: Text('Sunday, July 07, 2024 at 12:00 PM'));
 
   @override
   Widget build(BuildContext context) => Column(
