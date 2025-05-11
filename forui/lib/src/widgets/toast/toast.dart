@@ -79,7 +79,7 @@ ToastOverlay showToast({
     onClosed: onClosed,
     showDuration: showDuration,
   );
-  return layer!.addEntry(entry);
+  return layer.addEntry(entry);
 }
 
 enum ExpandMode { alwaysExpanded, expandOnHover, expandOnTap, disabled }
@@ -100,7 +100,6 @@ class FToastLayer extends StatefulWidget {
   final Widget child;
 
   const FToastLayer({
-    super.key,
     required this.child,
     this.style,
     this.maxStackedEntries = 3,
@@ -110,6 +109,7 @@ class FToastLayer extends StatefulWidget {
     this.expandingCurve = Curves.easeOutCubic,
     this.collapsedOpacity = 1,
     this.entryOpacity = 0.0,
+    super.key,
   });
 
   @override
@@ -291,6 +291,7 @@ class _FToastLayerState extends State<FToastLayer> {
 class ToastOverlay {
   /// The key of the toast entry.
   final GlobalKey key = GlobalKey();
+
   /// The toast entry.
   final ToastEntry entry;
 
